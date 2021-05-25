@@ -3,7 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package com.visiontracker.challengeTrackerApplication.models.db;
+
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -26,27 +27,15 @@ import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+//import javax.validation.constraints.NotNull;
+//import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
-/**
- *
- * @author sthit
- */
+
 @Entity
 @Table(name = "program")
 @XmlRootElement
-@NamedQueries({
-    @NamedQuery(name = "Program.findAll", query = "SELECT p FROM Program p"),
-    @NamedQuery(name = "Program.findByProgramId", query = "SELECT p FROM Program p WHERE p.programId = :programId"),
-    @NamedQuery(name = "Program.findByTitle", query = "SELECT p FROM Program p WHERE p.title = :title"),
-    @NamedQuery(name = "Program.findByDescription", query = "SELECT p FROM Program p WHERE p.description = :description"),
-    @NamedQuery(name = "Program.findByStartDate", query = "SELECT p FROM Program p WHERE p.startDate = :startDate"),
-    @NamedQuery(name = "Program.findByTargetCompletionDate", query = "SELECT p FROM Program p WHERE p.targetCompletionDate = :targetCompletionDate"),
-    @NamedQuery(name = "Program.findByActualCompletedDate", query = "SELECT p FROM Program p WHERE p.actualCompletedDate = :actualCompletedDate"),
-    @NamedQuery(name = "Program.findByCurrentProgressRate", query = "SELECT p FROM Program p WHERE p.currentProgressRate = :currentProgressRate")})
 public class Program implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -56,11 +45,11 @@ public class Program implements Serializable {
     @Column(name = "programId")
     private Long programId;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "title")
     private String title;
-    @Size(max = 255)
+    //@Size(max = 255)
     @Column(name = "description")
     private String description;
     @Column(name = "startDate")

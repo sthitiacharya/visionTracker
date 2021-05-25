@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package com.visiontracker.challengeTrackerApplication.models.db;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -21,8 +21,8 @@ import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+//import javax.validation.constraints.NotNull;
+//import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -32,22 +32,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Entity
 @Table(name = "milestone")
 @XmlRootElement
-@NamedQueries({
-    @NamedQuery(name = "Milestone.findAll", query = "SELECT m FROM Milestone m"),
-    @NamedQuery(name = "Milestone.findByMilestoneId", query = "SELECT m FROM Milestone m WHERE m.milestoneId = :milestoneId"),
-    @NamedQuery(name = "Milestone.findByTitle", query = "SELECT m FROM Milestone m WHERE m.title = :title"),
-    @NamedQuery(name = "Milestone.findByDescription", query = "SELECT m FROM Milestone m WHERE m.description = :description"),
-    @NamedQuery(name = "Milestone.findByMilestoneType", query = "SELECT m FROM Milestone m WHERE m.milestoneType = :milestoneType"),
-    @NamedQuery(name = "Milestone.findByCreationDate", query = "SELECT m FROM Milestone m WHERE m.creationDate = :creationDate"),
-    @NamedQuery(name = "Milestone.findByTargetCompletionDate", query = "SELECT m FROM Milestone m WHERE m.targetCompletionDate = :targetCompletionDate"),
-    @NamedQuery(name = "Milestone.findByActualCompletedDate", query = "SELECT m FROM Milestone m WHERE m.actualCompletedDate = :actualCompletedDate"),
-    @NamedQuery(name = "Milestone.findByInitialValue", query = "SELECT m FROM Milestone m WHERE m.initialValue = :initialValue"),
-    @NamedQuery(name = "Milestone.findByTargetValue", query = "SELECT m FROM Milestone m WHERE m.targetValue = :targetValue"),
-    @NamedQuery(name = "Milestone.findByValueCategory", query = "SELECT m FROM Milestone m WHERE m.valueCategory = :valueCategory"),
-    @NamedQuery(name = "Milestone.findByValueType", query = "SELECT m FROM Milestone m WHERE m.valueType = :valueType"),
-    @NamedQuery(name = "Milestone.findByRewardValue", query = "SELECT m FROM Milestone m WHERE m.rewardValue = :rewardValue"),
-    @NamedQuery(name = "Milestone.findByReminderStartDate", query = "SELECT m FROM Milestone m WHERE m.reminderStartDate = :reminderStartDate"),
-    @NamedQuery(name = "Milestone.findByReminderInterval", query = "SELECT m FROM Milestone m WHERE m.reminderInterval = :reminderInterval")})
 public class Milestone implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -57,25 +41,25 @@ public class Milestone implements Serializable {
     @Column(name = "milestoneId")
     private Long milestoneId;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "title")
     private String title;
-    @Size(max = 255)
+    //@Size(max = 255)
     @Column(name = "description")
     private String description;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "milestoneType")
     private String milestoneType;
     @Basic(optional = false)
-    @NotNull
+    //@NotNull
     @Column(name = "creationDate")
     @Temporal(TemporalType.DATE)
     private Date creationDate;
     @Basic(optional = false)
-    @NotNull
+    //@NotNull
     @Column(name = "targetCompletionDate")
     @Temporal(TemporalType.DATE)
     private Date targetCompletionDate;
@@ -84,25 +68,25 @@ public class Milestone implements Serializable {
     private Date actualCompletedDate;
     // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
     @Basic(optional = false)
-    @NotNull
+    //@NotNull
     @Column(name = "initialValue")
     private BigDecimal initialValue;
     @Basic(optional = false)
-    @NotNull
+    //@NotNull
     @Column(name = "targetValue")
     private BigDecimal targetValue;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "valueCategory")
     private String valueCategory;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "valueType")
     private String valueType;
     @Basic(optional = false)
-    @NotNull
+    //@NotNull
     @Column(name = "rewardValue")
     private int rewardValue;
     @Column(name = "reminderStartDate")
@@ -119,7 +103,7 @@ public class Milestone implements Serializable {
     private User assignedUser;
     @JoinColumn(name = "milestoneCreatedBy", referencedColumnName = "userId")
     @ManyToOne(optional = false)
-    private User milestoneCreatedBy;
+    private com.visiontracker.challengeTrackerApplication.models.db.User milestoneCreatedBy;
 
     public Milestone() {
     }
@@ -253,7 +237,7 @@ public class Milestone implements Serializable {
         this.reminderInterval = reminderInterval;
     }
 
-    public Program getProgramId() {
+    public com.visiontracker.challengeTrackerApplication.models.db.Program getProgramId() {
         return programId;
     }
 
@@ -261,15 +245,15 @@ public class Milestone implements Serializable {
         this.programId = programId;
     }
 
-    public User getAssignedUser() {
+    public com.visiontracker.challengeTrackerApplication.models.db.User getAssignedUser() {
         return assignedUser;
     }
 
-    public void setAssignedUser(User assignedUser) {
+    public void setAssignedUser(com.visiontracker.challengeTrackerApplication.models.db.User assignedUser) {
         this.assignedUser = assignedUser;
     }
 
-    public User getMilestoneCreatedBy() {
+    public com.visiontracker.challengeTrackerApplication.models.db.User getMilestoneCreatedBy() {
         return milestoneCreatedBy;
     }
 

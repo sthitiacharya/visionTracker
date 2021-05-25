@@ -20,6 +20,9 @@ dependencies {
 	implementation 'org.testng:testng:7.1.0'
 	runtimeOnly 'mysql:mysql-connector-java'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.mockito:mockito-core:3.+'
+	testImplementation 'org.mockito:mockito-inline:3.7.7'
+	testImplementation 'org.mockito:mockito-junit-jupiter:3.7.7'
 }
 
 test {

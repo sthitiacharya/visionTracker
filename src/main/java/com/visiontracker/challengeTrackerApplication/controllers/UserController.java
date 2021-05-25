@@ -3,61 +3,47 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ws.rest;
+package com.visiontracker.challengeTrackerApplication.controllers;
 
-import ejb.session.stateless.UserEntitySessionBeanLocal;
-import entity.User;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import com.visiontracker.challengeTrackerApplication.models.db.User;
+import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import util.exception.InputDataValidationException;
 import util.exception.InvalidLoginCredentialException;
 import util.exception.UnknownPersistenceException;
 import util.exception.UserUsernameExistException;
-import ws.datamodel.LoginReq;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+//import javax.ws.rs.*;
+//import javax.ws.rs.core.*;
+//import javax.ws.rs.core.Response.Status;
+import javax.xml.ws.Response;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * REST Web Service
  *
  * @author sthit
  */
-@Path("User")
-public class UserResource {
+@Controller
+@RequestMapping(path="/User")
+public class UserController {
+    @Autowired
+    private UserRepository userRepository;
 
-    UserEntitySessionBeanLocal userEntitySessionBeanLocal = lookupUserEntitySessionBeanLocal();
-
-    @Context
-    private UriInfo context;
-    
-    
-
-    /**
-     * Creates a new instance of UserResource
-     */
-    public UserResource() {
-        //userSessionBeanLocal = lookupUserEntitySessionBeanLocal();
-    }
-
-    @Path("register")
-    @PUT
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response createUser(User newUser) {
-        if (newUser == null) {
+    @PostMapping(path = "/register")
+    public ResponseEntity<String> createUser(@RequestBody User newUser) {
+        /*if (newUser == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid create new user request").build();
         }
         try {
@@ -67,7 +53,10 @@ public class UserResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage()).build();
         } catch (InputDataValidationException ex) {
             return Response.status(Status.UNAUTHORIZED).entity(ex.getMessage()).build();
-        }        
+        } */
+        userRepository.save(newUser);
+
+        return new ResponseEntity<String>(HttpStatus.ACCEPTED);
     }
     
 //    @Path("userLogin")
@@ -90,6 +79,7 @@ public class UserResource {
 //        }
 //    }
 
+/*
     @Path("login")
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -123,17 +113,17 @@ public class UserResource {
             
             for(User user : users)
             {
-                /*for (Program program : user.getEnrolledPrograms())
+                for (Program program : user.getEnrolledPrograms())
                 {
                     program.getMilestoneList().clear();
                     program.getUserList().clear();
-                }*/
+                }
                 user.getEnrolledPrograms().clear();
-                /*for (Program program : user.getProgramsManaging())
+                for (Program program : user.getProgramsManaging())
                 {
                     program.getMilestoneList().clear();
                     program.getUserList().clear();
-                }*/
+                }
                 user.getProgramsManaging().clear();
                 user.getMilestoneList().clear();
                 user.getMilestonesCreated().clear();
@@ -159,4 +149,5 @@ public class UserResource {
             throw new RuntimeException(ne);
         }
     }
+    */
 }

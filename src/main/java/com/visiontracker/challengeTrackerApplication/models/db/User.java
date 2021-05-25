@@ -3,7 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package entity;
+package com.visiontracker.challengeTrackerApplication.models.db;
+
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,8 +21,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+//import javax.validation.constraints.NotNull;
+//import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
@@ -49,23 +50,23 @@ public class User implements Serializable {
     private Long userId;
     // @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="Invalid email")//if the field contains email address consider using this annotation to enforce field validation
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 255)
+    //@NotNull
+    //@Size(min = 1, max = 255)
     @Column(name = "email")
     private String email;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "username")
     private String username;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 64)
+    //@NotNull
+    //@Size(min = 1, max = 64)
     @Column(name = "password")
     private String password;
     @Basic(optional = false)
-    @NotNull
-    @Size(min = 1, max = 255)
+    //@NotNull
+    //@Size(min = 1, max = 255)
     @Column(name = "mailingAddress")
     private String mailingAddress;
     @ManyToMany(mappedBy = "userList")
