@@ -47,7 +47,7 @@ public class User implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "userId")
-    private Long userId;
+    private Integer userId;
     // @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="Invalid email")//if the field contains email address consider using this annotation to enforce field validation
     @Basic(optional = false)
     //@NotNull
@@ -85,7 +85,7 @@ public class User implements Serializable {
         this.programsManaging = new ArrayList<>();
     }
 
-    public User(Long userId) {
+    public User(Integer userId) {
         this();
         this.userId = userId;
     }
@@ -98,11 +98,11 @@ public class User implements Serializable {
         this.mailingAddress = mailingAddress;
     }
 
-    public Long getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 
-    public void setUserId(Long userId) {
+    public void setUserId(Integer userId) {
         this.userId = userId;
     }
 
