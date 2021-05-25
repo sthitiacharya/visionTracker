@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.persistence.PersistenceException;
@@ -26,7 +26,7 @@ public class ProgramController {
     @Autowired
     private UserRepository userRepository;
 
-    @PutMapping("/createProgram")
+    @PostMapping("/createProgram")
     public ResponseEntity<Program> createProgram(CreateProgramReq createProgramReq)
     {
         if(createProgramReq == null) {
@@ -45,8 +45,8 @@ public class ProgramController {
 
             if (createProgramReq.getProgram().getProgramManager() == null)
             {
+                System.out.println("Program must be assigned to a program manager");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                //"Program must be assigned to a program manager"
             }
 
             Program newProgram = programRepository.save(createProgramReq.getProgram());
@@ -62,6 +62,7 @@ public class ProgramController {
         }
         catch (PersistenceException ex)
         {
+            System.out.println("Persistence Exception");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         catch (ParseException ex)

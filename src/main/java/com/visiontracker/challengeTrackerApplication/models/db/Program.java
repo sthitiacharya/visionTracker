@@ -43,7 +43,7 @@ public class Program implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "programId")
-    private Long programId;
+    private Integer programId;
     @Basic(optional = false)
     //@NotNull
     //@Size(min = 1, max = 64)
@@ -80,11 +80,11 @@ public class Program implements Serializable {
         this.userList = new ArrayList<>();
     }
 
-    public Program(Long programId) {
+    public Program(Integer programId) {
         this.programId = programId;
     }
 
-    public Program(Long programId, String title) {
+    public Program(Integer programId, String title) {
         this.programId = programId;
         this.title = title;
     }
@@ -97,11 +97,11 @@ public class Program implements Serializable {
         this.targetCompletionDate = targetCompletionDate;
     }
 
-    public Long getProgramId() {
+    public Integer getProgramId() {
         return programId;
     }
 
-    public void setProgramId(Long programId) {
+    public void setProgramId(Integer programId) {
         this.programId = programId;
     }
 

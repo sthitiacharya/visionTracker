@@ -15,14 +15,14 @@ import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 public class CreateMilestoneReq {
     
     private Milestone milestone;
-    private Long programId;
+    private Integer programId;
     private String targetCompletionDate;
 
     public CreateMilestoneReq()
     {
         
     }
-    public CreateMilestoneReq(Milestone milestone, Long programId, String targetCompletionDate) {
+    public CreateMilestoneReq(Milestone milestone, Integer programId, String targetCompletionDate) {
         this.milestone = milestone;
         this.programId = programId;
         this.targetCompletionDate = targetCompletionDate;
@@ -45,14 +45,14 @@ public class CreateMilestoneReq {
     /**
      * @return the programId
      */
-    public Long getProgramId() {
+    public Integer getProgramId() {
         return programId;
     }
 
     /**
      * @param programId the programId to set
      */
-    public void setProgramId(Long programId) {
+    public void setProgramId(Integer programId) {
         this.programId = programId;
     }
 
