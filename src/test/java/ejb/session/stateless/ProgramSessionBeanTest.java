@@ -9,22 +9,30 @@ import java.util.List;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import org.junit.After;
-import org.junit.AfterClass;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+//import org.junit.After;
+//import org.junit.AfterClass;
+//import static org.junit.Assert.assertEquals;
+//import static org.junit.Assert.assertNotNull;
+//import org.junit.Before;
+//import org.junit.BeforeClass;
+//import org.junit.FixMethodOrder;
+//import org.junit.Test;
+//import org.junit.runners.MethodSorters;
 import util.exception.CreateNewProgramException;
 import util.exception.InputDataValidationException;
 import util.exception.ProgramTitleExistException;
 import util.exception.UnknownPersistenceException;
 
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.Alphanumeric.class)
 public class ProgramSessionBeanTest {
 
     private static ProgramSessionBeanLocal programSessionBeanLocal;
@@ -33,23 +41,23 @@ public class ProgramSessionBeanTest {
     {
     }    
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpClass() 
     {
         programSessionBeanLocal = lookupProgramSessionBeanLocal();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownClass() 
     {
     }
 
-    @Before
+    @BeforeEach
     public void setUp() 
     {
     }
 
-    @After
+    @AfterEach
     public void tearDown() 
     {
     }
@@ -68,11 +76,11 @@ public class ProgramSessionBeanTest {
         //userIds.add(1l);
         Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds);
         
-        assertNotNull(actualProgramId);
-        assertEquals(1l, actualProgramId.longValue());        
+        Assertions.assertNotNull(actualProgramId);
+        Assertions.assertEquals(1l, actualProgramId.longValue());
     }
 
-    @Test(expected = ProgramTitleExistException.class)
+    @Test
     public void test02CreateProgram02() throws ProgramTitleExistException, UnknownPersistenceException, InputDataValidationException, CreateNewProgramException, ParseException
     {
         String stringDate = "12-05-2021";
@@ -83,10 +91,11 @@ public class ProgramSessionBeanTest {
         Long[] temp = new Long[1];
         temp[0] = 1l;
         List<Long> userIds = Arrays.asList(temp);
-        Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds);     
+        //Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds);
+        Assertions.assertThrows(ProgramTitleExistException.class, () -> programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds));
     }
 
-    @Test(expected = InputDataValidationException.class)
+    @Test
     public void test03CreateProgram03() throws ProgramTitleExistException, UnknownPersistenceException, InputDataValidationException, CreateNewProgramException, ParseException
     {
         String stringDate = "12-05-2021";
@@ -97,10 +106,11 @@ public class ProgramSessionBeanTest {
         Long[] temp = new Long[1];
         temp[0] = 1l;
         List<Long> userIds = Arrays.asList(temp);
-        Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds);     
+        //Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds);
+        Assertions.assertThrows(InputDataValidationException.class, () -> programSessionBeanLocal.createProgram(expectedProgram, 1l, userIds));
     }
 
-    @Test(expected = CreateNewProgramException.class)
+    @Test
     public void test04CreateProgram04() throws ProgramTitleExistException, UnknownPersistenceException, InputDataValidationException, CreateNewProgramException, ParseException
     {
         String stringDate = "12-05-2021";
@@ -111,10 +121,11 @@ public class ProgramSessionBeanTest {
         Long[] temp = new Long[1];
         temp[0] = 1l;
         List<Long> userIds = Arrays.asList(temp);
-        Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 2l, userIds);     
+        //Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, 2l, userIds);
+        Assertions.assertThrows(CreateNewProgramException.class, () -> programSessionBeanLocal.createProgram(expectedProgram, 2l, userIds));
     }
  
-    @Test(expected = CreateNewProgramException.class)
+    @Test
     public void test05CreateProgram05() throws ProgramTitleExistException, UnknownPersistenceException, InputDataValidationException, CreateNewProgramException, ParseException
     {
         String stringDate = "12-05-2021";
@@ -122,7 +133,8 @@ public class ProgramSessionBeanTest {
         Date date = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate);
         Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate2);
         Program expectedProgram = new Program("Title 1", "Description 1", date, date2);
-        Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, null, null);     
+        //Long actualProgramId = programSessionBeanLocal.createProgram(expectedProgram, null, null);
+        Assertions.assertThrows(CreateNewProgramException.class, () -> programSessionBeanLocal.createProgram(expectedProgram, null, null));
     }
           
 
