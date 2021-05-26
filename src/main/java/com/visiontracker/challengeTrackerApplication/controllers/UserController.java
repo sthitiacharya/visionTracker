@@ -22,14 +22,15 @@ import javax.persistence.PersistenceException;
 import java.util.List;
 
 
-@Controller
+@RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(path="/User")
 public class UserController {
     @Autowired
     private UserRepository userRepository;
 
     @PostMapping(path = "/register")
-    public ResponseEntity<User> createUser(@RequestBody User newUser) {
+    public ResponseEntity<Integer> createUser(@RequestBody User newUser) {
         /*if (newUser == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity("Invalid create new user request").build();
         }
@@ -45,7 +46,7 @@ public class UserController {
         {
             userRepository.save(newUser);
 
-            return new ResponseEntity<>(newUser, HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(newUser.getUserId(), HttpStatus.ACCEPTED);
         }
         catch (PersistenceException ex)
         {
@@ -59,21 +60,7 @@ public class UserController {
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<User> userLogin(LoginReq loginReq) throws InvalidLoginCredentialException {
-        /*try {
-            User userEntity = userEntitySessionBeanLocal.userLogin(loginReq.getUsername(), loginReq.getPassword());
-            userEntity.getEnrolledPrograms().clear();
-            userEntity.getMilestoneList().clear();
-            userEntity.getMilestonesCreated().clear();
-            userEntity.getProgramsManaging().clear();
-            System.out.println("********** UserResource.userLogin(): User " + userEntity.getUsername() + " login remotely via web service");  
-            
-            return Response.status(Status.OK).entity(userEntity).build();
-        } catch (InvalidLoginCredentialException ex) {
-            return Response.status(Status.UNAUTHORIZED).entity(ex.getMessage()).build();
-        } catch (Exception ex) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(ex.getMessage()).build();
-        }*/
+    public ResponseEntity<User> userLogin(@RequestBody LoginReq loginReq) throws InvalidLoginCredentialException {
         System.out.println("Login Req username: " + loginReq.getUsername());
         User user = userRepository.findUserByUsername(loginReq.getUsername());
 
@@ -82,8 +69,10 @@ public class UserController {
             System.out.println("Username not found");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+        System.out.println("User Password: " + user.getPassword());
+        System.out.println("LoginReq Password: " + loginReq.getPassword());
 
-        if (user.getPassword() != loginReq.getPassword())
+        if (!user.getPassword().equals(loginReq.getPassword()))
         {
             System.out.println("Invalid Password");
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -99,6 +88,14 @@ public class UserController {
         try
         {
             List<User> users = userRepository.findAll();
+
+            for (User u : users)
+            {
+                u.getProgramsManaging().clear();
+                u.getEnrolledPrograms().clear();
+                u.getMilestoneList().clear();
+                u.getMilestonesCreated().clear();
+            }
 
             return new ResponseEntity<>(users, HttpStatus.ACCEPTED);
         }

@@ -9,15 +9,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.PersistenceException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@Controller
+@RestController
+@CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(path="/Program")
 public class ProgramController {
     @Autowired
@@ -27,10 +27,10 @@ public class ProgramController {
     private UserRepository userRepository;
 
     @PostMapping("/createProgram")
-    public ResponseEntity<Program> createProgram(CreateProgramReq createProgramReq)
+    public ResponseEntity<Integer> createProgram(@RequestBody CreateProgramReq createProgramReq)
     {
         if(createProgramReq == null) {
-            return new ResponseEntity<Program> (HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<> (HttpStatus.BAD_REQUEST);
             //"Invalid Create Program Request"
         }
         try
@@ -43,22 +43,25 @@ public class ProgramController {
             Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getTargetCompletionDate());
             createProgramReq.getProgram().setTargetCompletionDate(date2);
 
-            if (createProgramReq.getProgram().getProgramManager() == null)
+            if (createProgramReq.getUserId() == null)
             {
                 System.out.println("Program must be assigned to a program manager");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+            User programManager = userRepository.findUserById(createProgramReq.getUserId());
+            createProgramReq.getProgram().setProgramManager(programManager);
+            createProgramReq.getProgram().getProgramManager().getProgramsManaging().add(createProgramReq.getProgram());
 
-            Program newProgram = programRepository.save(createProgramReq.getProgram());
-            newProgram.getProgramManager().getProgramsManaging().add(newProgram);
             for (Integer u : createProgramReq.getUserIds())
             {
                 User user = userRepository.findUserById(u);
-                newProgram.getUserList().add(user);
-                user.getEnrolledPrograms().add(newProgram);
+                createProgramReq.getProgram().getUserList().add(user);
+                user.getEnrolledPrograms().add(createProgramReq.getProgram());
             }
 
-            return new ResponseEntity<Program>(newProgram,HttpStatus.ACCEPTED);
+            Program newProgram = programRepository.save(createProgramReq.getProgram());
+
+            return new ResponseEntity<Integer>(newProgram.getProgramId(),HttpStatus.ACCEPTED);
         }
         catch (PersistenceException ex)
         {
@@ -72,6 +75,7 @@ public class ProgramController {
         }
         catch(Exception ex)
         {
+            System.out.println("Internal Server Error");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
