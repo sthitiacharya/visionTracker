@@ -6,17 +6,14 @@
 package com.visiontracker.challengeTrackerApplication.controllers;
 
 import com.visiontracker.challengeTrackerApplication.models.datamodels.LoginReq;
+import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import util.exception.InputDataValidationException;
 import util.exception.InvalidLoginCredentialException;
-import util.exception.UnknownPersistenceException;
-import util.exception.UserUsernameExistException;
 
 import javax.persistence.PersistenceException;
 import java.util.List;
@@ -29,19 +26,12 @@ public class UserController {
     @Autowired
     private UserRepository userRepository;
 
+    private String username;
+    private String password;
+    private List<Program> enrolledPrograms;
+
     @PostMapping(path = "/register")
     public ResponseEntity<Integer> createUser(@RequestBody User newUser) {
-        /*if (newUser == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("Invalid create new user request").build();
-        }
-        try {
-            Long userEntityId = userEntitySessionBeanLocal.createNewUser(newUser);
-            return Response.status(Response.Status.OK).entity(userEntityId).build();
-        } catch (UserUsernameExistException | UnknownPersistenceException ex) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(ex.getMessage()).build();
-        } catch (InputDataValidationException ex) {
-            return Response.status(Status.UNAUTHORIZED).entity(ex.getMessage()).build();
-        } */
         try
         {
             userRepository.save(newUser);
@@ -78,8 +68,14 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+        setEnrolledPrograms(user.getEnrolledPrograms());
 
+        user.getMilestoneList().clear();
+        user.getProgramsManaging().clear();
+        user.getEnrolledPrograms().clear();
+        user.getMilestonesCreated().clear();
+
+        return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
     }
 
     @GetMapping(path = "/retrieveAllUsers")
@@ -103,5 +99,29 @@ public class UserController {
         {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public List<Program> getEnrolledPrograms() {
+        return enrolledPrograms;
+    }
+
+    public void setEnrolledPrograms(List<Program> enrolledPrograms) {
+        this.enrolledPrograms = enrolledPrograms;
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.persistence.PersistenceException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -73,5 +74,13 @@ public class MilestoneController {
         {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping(path = "/getProgramMilestones")
+    public ResponseEntity<List<Milestone>> retrieveProgramMilestones(@RequestParam(name = "programId") Integer programId)
+    {
+        List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(programId);
+
+        return new ResponseEntity<>(milestones, HttpStatus.ACCEPTED);
     }
 }

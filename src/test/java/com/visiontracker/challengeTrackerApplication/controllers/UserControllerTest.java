@@ -20,7 +20,7 @@ public class UserControllerTest {
     public void testController01()
     {
         User newUser = new User("email@email.com", "newUser", "password", "111 Address Avenue Singapore 123456");
-        ResponseEntity<String> response = userController.createUser(newUser);
+        ResponseEntity<Integer> response = userController.createUser(newUser);
         //verify()
     }
 }

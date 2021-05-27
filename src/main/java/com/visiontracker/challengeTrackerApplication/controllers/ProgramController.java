@@ -12,9 +12,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.PersistenceException;
+import javax.websocket.server.PathParam;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
@@ -25,6 +28,8 @@ public class ProgramController {
 
     @Autowired
     private UserRepository userRepository;
+
+    private UserController userController;
 
     @PostMapping("/createProgram")
     public ResponseEntity<Integer> createProgram(@RequestBody CreateProgramReq createProgramReq)
@@ -48,9 +53,15 @@ public class ProgramController {
                 System.out.println("Program must be assigned to a program manager");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
+
             User programManager = userRepository.findUserById(createProgramReq.getUserId());
             createProgramReq.getProgram().setProgramManager(programManager);
             createProgramReq.getProgram().getProgramManager().getProgramsManaging().add(createProgramReq.getProgram());
+
+            if (!createProgramReq.getUserIds().contains(programManager.getUserId()))
+            {
+                createProgramReq.getUserIds().add(programManager.getUserId());
+            }
 
             for (Integer u : createProgramReq.getUserIds())
             {
@@ -78,5 +89,45 @@ public class ProgramController {
             System.out.println("Internal Server Error");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @GetMapping(path = "/getEnrolledPrograms")
+    public ResponseEntity<List<Program>> getEnrolledPrograms(@RequestParam(name = "userId") Integer userId)
+    {
+        User user = userRepository.findUserById(userId);
+        if (user == null)
+        {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        List<Program> programs = programRepository.findAll();
+        List<Program> enrolledPrograms = new ArrayList<>();
+
+        for (Program p : programs)
+        {
+            if (p.getUserList().contains(user))
+            {
+                enrolledPrograms.add(p);
+            }
+            p.getUserList().clear();
+            p.getMilestoneList().clear();
+        }
+        user.getMilestonesCreated().clear();
+        user.getEnrolledPrograms().clear();
+        user.getProgramsManaging().clear();
+        user.getMilestoneList().clear();
+
+        return new ResponseEntity<>(programs, HttpStatus.ACCEPTED);
+    }
+
+    @GetMapping(path = "getEnrolledPrograms/{programId}")
+    public ResponseEntity<Program> retrieveProgram(@PathVariable(value = "programId") Integer programId)
+    {
+        Program program = programRepository.findProgramById(programId);
+
+        program.getUserList().clear();
+        program.getMilestoneList().clear();
+
+        return new ResponseEntity<>(program, HttpStatus.ACCEPTED);
     }
 }
