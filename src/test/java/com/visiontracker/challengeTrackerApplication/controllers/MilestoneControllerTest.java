@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @SpringBootTest
@@ -55,8 +56,7 @@ public class MilestoneControllerTest {
         newMilestone.setMilestoneCreatedBy(u);
         Long programId = Long.valueOf(1);
 
-        //Program p = programRepository.findProgramById(programId);
-        //newMilestone.setProgramId(p);
+        Mockito.when(milestoneRepository.save(any(Milestone.class))).thenReturn(newMilestone);
         CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, programId, stringDate);
         String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
         System.out.println(requestContent);
@@ -65,29 +65,9 @@ public class MilestoneControllerTest {
         Mockito.verify(milestoneRepository, Mockito.atMostOnce()).save(newMilestone);
     }
 
-    //creation of new milestone: fail due to duplicate entry
-    @Test
-    public void testMilestoneController02() throws Exception {
-        String stringDate = "12-05-2021";
-        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
-                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
-        User u = userRepository.findUserById(Long.valueOf(1));
-        newMilestone.setMilestoneCreatedBy(u);
-
-        //Long programId = Long.valueOf(1);
-        //Program p = programRepository.findProgramById(programId);
-        //newMilestone.setProgramId(p);
-        CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, 1l, stringDate);
-        String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
-        System.out.println(requestContent);
-        mockMvc.perform(MockMvcRequestBuilders.post("/Milestone/createMilestone").contentType(APPLICATION_JSON).content(requestContent))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        //Mockito.verify(milestoneRepository, Mockito.atMostOnce()).save(newMilestone);
-    }
-
     //creation of new milestone: failure due to null program ID
     @Test
-    public void testMilestoneController03() throws Exception {
+    public void testMilestoneController02() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -110,7 +90,7 @@ public class MilestoneControllerTest {
 
     //retrieval of program milestones
     @Test
-    public void testMilestoneController04() throws Exception {
+    public void testMilestoneController03() throws Exception {
         Long programId = Long.valueOf(1);
         String requestContent = objectMapper.writeValueAsString(programId);
         System.out.println(requestContent);

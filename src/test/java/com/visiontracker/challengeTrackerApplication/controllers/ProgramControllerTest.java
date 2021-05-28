@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @SpringBootTest
@@ -41,40 +42,21 @@ public class ProgramControllerTest {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1l);
         CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1l, users, stringDate, stringDate2);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         String requestContent = objectMapper.writeValueAsString(newProgramReq);
-        System.out.println(requestContent);
+        //System.out.println(requestContent);
         mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
         Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
     }
 
-    //creation of new program: fail due to duplicate entry of title
-    @Test
-    public void testProgramController02() throws Exception
-    {
-        String stringDate = "12-05-2021";
-        String stringDate2 = "17-05-2021";
-        Date date = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate);
-        Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate2);
-        Program newProgram = new Program("Sample Title", "Sample Description", date, date2);
-        List<Long> users = new ArrayList<>();
-        users.add(1l);
-        CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1l, users, stringDate, stringDate2);
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        String requestContent = objectMapper.writeValueAsString(newProgramReq);
-        System.out.println(requestContent);
-        mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        //Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
-    }
-
     //creation of new program: fail due to null program manager
     @Test
-    public void testProgramController03() throws Exception
+    public void testProgramController02() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -93,7 +75,7 @@ public class ProgramControllerTest {
 
     //retrieval of enrolled programs
     @Test
-    public void testProgramController04() throws Exception
+    public void testProgramController03() throws Exception
     {
         Long userId = Long.valueOf(1);
         String requestContent = objectMapper.writeValueAsString(userId);
@@ -104,7 +86,7 @@ public class ProgramControllerTest {
 
     //retrieval of individual program
     @Test
-    public void testProgramController05() throws Exception
+    public void testProgramController04() throws Exception
     {
         Program p = new Program();
         p.setProgramId(1l);

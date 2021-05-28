@@ -43,26 +43,9 @@ public class UserControllerTest {
         Mockito.verify(userRepository, Mockito.atMostOnce()).save(newUser);
     }
 
-    //creation of new user: fail due to duplicate entry
-    @Test
-    public void testUserController02() throws Exception
-    {
-        User u = new User("email@email.com", "newUser", "password", "111 Address Avenue Singapore 123456");
-        Mockito.when(userRepository.save(u)).thenReturn(u);
-        User newUser = new User("email@email.com", "newUser", "password", "111 Address Avenue Singapore 123456");
-        objectMapper = new ObjectMapper();
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        String requestContent = objectMapper.writeValueAsString(newUser);
-        System.out.println(requestContent);
-        mockMvc.perform(MockMvcRequestBuilders.post("/User/register").contentType(APPLICATION_JSON).content(requestContent))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.content().string("Duplicate username or email"));
-        //Mockito.verify(userRepository, Mockito.atMostOnce()).save(newUser);
-    }
-
     //user login: success
     @Test
-    public void testUserController03() throws Exception
+    public void testUserController02() throws Exception
     {
         User u = new User();
         u.setUsername("username");
@@ -79,7 +62,7 @@ public class UserControllerTest {
 
     //user login: failure due to invalid username
     @Test
-    public void testUserController04() throws Exception
+    public void testUserController03() throws Exception
     {
         User u = new User();
         u.setUsername("username");
@@ -97,7 +80,7 @@ public class UserControllerTest {
 
     //user login: failure due to invalid password
     @Test
-    public void testUserController05() throws Exception
+    public void testUserController04() throws Exception
     {
         User u = new User();
         u.setUsername("username");

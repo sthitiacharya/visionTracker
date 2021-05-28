@@ -82,6 +82,7 @@ public class MilestoneController {
         }
         catch(Exception ex)
         {
+            ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }

@@ -21,8 +21,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -40,7 +38,6 @@ public class Program implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Basic(optional = false)
     @Column(name = "programId")
     private Long programId;
     @Basic(optional = false)
@@ -191,7 +188,8 @@ public class Program implements Serializable {
 
     @Override
     public String toString() {
-        return "entity.Program[ programId=" + programId + " ]";
+        return "entity.Program[ programId=" + programId + ", Program Title: " + title
+               +  " ]";
     }
     
 }

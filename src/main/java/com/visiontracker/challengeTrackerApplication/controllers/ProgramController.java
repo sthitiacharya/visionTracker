@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
@@ -29,14 +30,12 @@ public class ProgramController {
     @Autowired
     private UserRepository userRepository;
 
-    private UserController userController;
-
     @PostMapping("/createProgram")
     public ResponseEntity<Object> createProgram(@RequestBody CreateProgramReq createProgramReq)
     {
         try
         {
-            if(createProgramReq == null) {
+            if(createProgramReq == null || createProgramReq.getProgram() == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Create Program Request");
             }
 
@@ -53,24 +52,10 @@ public class ProgramController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program Manager not found");
             }
 
-            if (!programManager.getProgramsManaging().isEmpty())
-            {
-                programManager.getProgramsManaging().clear();
-            }
-            if (!programManager.getMilestoneList().isEmpty())
-            {
-                programManager.getMilestoneList().clear();
-            }
-            if (!programManager.getEnrolledPrograms().isEmpty())
-            {
-                programManager.getEnrolledPrograms().clear();
-            }
-            if (!programManager.getMilestonesCreated().isEmpty())
-            {
-                programManager.getMilestonesCreated().clear();
-            }
+            clearLists(programManager);
 
             createProgramReq.getProgram().setProgramManager(programManager);
+            programManager.getProgramsManaging().add(createProgramReq.getProgram());
 
             System.out.println("In createProgram RESTful Web Service");
 
@@ -88,18 +73,29 @@ public class ProgramController {
             for (Long u : createProgramReq.getUserIds())
             {
                 User user = userRepository.findUserById(u);
+                clearLists(user);
                 createProgramReq.getProgram().getUserList().add(user);
+                //user.getEnrolledPrograms().add(createProgramReq.getProgram());
             }
+
+            /*ObjectMapper mapper = new ObjectMapper();
+            String content = mapper.writeValueAsString(createProgramReq.getProgram());
+            System.out.println(content);*/
 
             Program newProgram = programRepository.save(createProgramReq.getProgram());
+            System.out.println(newProgram);
 
-            newProgram.getProgramManager().getProgramsManaging().add(newProgram);
             for (User u : newProgram.getUserList())
             {
-                u.getEnrolledPrograms().add(newProgram);
+                u.getEnrolledPrograms().clear();
+                u.getMilestonesCreated().clear();
+                u.getProgramsManaging().clear();
+                u.getMilestoneList().clear();
             }
+            newProgram.getUserList().clear();
+            newProgram.getMilestoneList().clear();
 
-            return new ResponseEntity<>(newProgram.getProgramId(),HttpStatus.OK);
+            return new ResponseEntity<>(newProgram.getProgramId(), HttpStatus.OK);
         }
         catch (DataIntegrityViolationException ex)
         {
@@ -115,10 +111,36 @@ public class ProgramController {
             System.out.println("Date parsed incorrectly");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Date parsed incorrectly");
         }
+        catch(IllegalArgumentException ex)
+        {
+            System.out.println("Illegal Argument Error");
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
+        }
         catch(Exception ex)
         {
             System.out.println("Internal Server Error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getCause());
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
+        }
+    }
+
+    private void clearLists(User user) {
+        if (!user.getProgramsManaging().isEmpty())
+        {
+            user.getProgramsManaging().clear();
+        }
+        if (!user.getMilestoneList().isEmpty())
+        {
+            user.getMilestoneList().clear();
+        }
+        if (!user.getEnrolledPrograms().isEmpty())
+        {
+            user.getEnrolledPrograms().clear();
+        }
+        if (!user.getMilestonesCreated().isEmpty())
+        {
+            user.getMilestonesCreated().clear();
         }
     }
 
