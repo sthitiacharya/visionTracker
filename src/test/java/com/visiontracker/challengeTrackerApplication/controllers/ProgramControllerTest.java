@@ -44,8 +44,8 @@ public class ProgramControllerTest {
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
-        users.add(1l);
-        CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1l, users, stringDate, stringDate2);
+        users.add(1L);
+        CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1L, users, stringDate, stringDate2);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         String requestContent = objectMapper.writeValueAsString(newProgramReq);
         //System.out.println(requestContent);
@@ -54,7 +54,7 @@ public class ProgramControllerTest {
         Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
     }
 
-    //creation of new program: fail due to null program manager
+    //creation of new program: fail due to duplicate entry of title
     @Test
     public void testProgramController02() throws Exception
     {
@@ -64,34 +64,56 @@ public class ProgramControllerTest {
         Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate2);
         Program newProgram = new Program("Sample Title", "Sample Description", date, date2);
         List<Long> users = new ArrayList<>();
-        users.add(1l);
+        users.add(1L);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        Mockito.when(programRepository.findProgramByTitle("Sample Title")).thenReturn(newProgram);
+        CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1L, users, stringDate, stringDate2);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        String requestContent = objectMapper.writeValueAsString(newProgramReq);
+        System.out.println(requestContent);
+        mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent));
+        mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Duplicate Program Title"));
+    }
+
+    //creation of new program: fail due to null program manager
+    @Test
+    public void testProgramController03() throws Exception
+    {
+        String stringDate = "12-05-2021";
+        String stringDate2 = "17-05-2021";
+        Date date = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate);
+        Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(stringDate2);
+        Program newProgram = new Program("Sample Title", "Sample Description", date, date2);
+        List<Long> users = new ArrayList<>();
+        users.add(1L);
         CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, null, users, stringDate, stringDate2);
         String requestContent = objectMapper.writeValueAsString(newProgramReq);
         System.out.println(requestContent);
         mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-        //Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Program must be assigned to a program manager"));
     }
 
     //retrieval of enrolled programs
     @Test
-    public void testProgramController03() throws Exception
+    public void testProgramController04() throws Exception
     {
-        Long userId = Long.valueOf(1);
+        Long userId = 1L;
         String requestContent = objectMapper.writeValueAsString(userId);
         mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms").queryParam("userId", requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
-        //Mockito.verify(programRepository, Mockito.atMostOnce()).findAll();
     }
 
     //retrieval of individual program
     @Test
-    public void testProgramController04() throws Exception
+    public void testProgramController05() throws Exception
     {
         Program p = new Program();
-        p.setProgramId(1l);
-        Mockito.when(programRepository.findProgramById(1l)).thenReturn(p);
-        Long programId = Long.valueOf(1);
+        p.setProgramId(1L);
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(p);
+        Long programId = 1L;
         String requestContent = objectMapper.writeValueAsString(programId);
         mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms/{programId}", programId).param("programId", requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());

@@ -43,6 +43,11 @@ public class MilestoneController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Milestones need to be associated with a program");
             }
 
+            if (milestoneRepository.findMilestoneByTitle(createMilestoneReq.getMilestone().getTitle()) != null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Milestone Title");
+            }
+
             System.out.println("In createMilestone RESTful Web Service");
             Date creationDate = new Date();
             createMilestoneReq.getMilestone().setCreationDate(creationDate);

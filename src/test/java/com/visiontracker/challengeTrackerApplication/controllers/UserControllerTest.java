@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -43,9 +42,24 @@ public class UserControllerTest {
         Mockito.verify(userRepository, Mockito.atMostOnce()).save(newUser);
     }
 
-    //user login: success
+    //creation of new user: fail due to duplicate entry
     @Test
     public void testUserController02() throws Exception
+    {
+        User newUser = new User("email@email.com", "newUser", "password", "111 Address Avenue Singapore 123456");
+        Mockito.when(userRepository.findUserByUsername("newUser")).thenReturn(newUser);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        String requestContent = objectMapper.writeValueAsString(newUser);
+        System.out.println(requestContent);
+        mockMvc.perform(MockMvcRequestBuilders.post("/User/register").contentType(APPLICATION_JSON).content(requestContent));
+        mockMvc.perform(MockMvcRequestBuilders.post("/User/register").contentType(APPLICATION_JSON).content(requestContent))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Duplicate username"));
+    }
+
+    //user login: success
+    @Test
+    public void testUserController03() throws Exception
     {
         User u = new User();
         u.setUsername("username");
@@ -57,12 +71,11 @@ public class UserControllerTest {
         String requestContent = objectMapper.writeValueAsString(userToLogin);
         mockMvc.perform(MockMvcRequestBuilders.post("/User/login").contentType(APPLICATION_JSON).content(requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
-        //Mockito.verify(userRepository, Mockito.atMostOnce()).save(newUser);
     }
 
     //user login: failure due to invalid username
     @Test
-    public void testUserController03() throws Exception
+    public void testUserController04() throws Exception
     {
         User u = new User();
         u.setUsername("username");
@@ -80,7 +93,7 @@ public class UserControllerTest {
 
     //user login: failure due to invalid password
     @Test
-    public void testUserController04() throws Exception
+    public void testUserController05() throws Exception
     {
         User u = new User();
         u.setUsername("username");

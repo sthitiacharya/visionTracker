@@ -38,8 +38,12 @@ public class UserController {
     public ResponseEntity<Object> createUser(@RequestBody User newUser) {
         try
         {
-            userRepository.save(newUser);
+            if (userRepository.findUserByUsername(newUser.getUsername()) != null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate username");
+            }
 
+            userRepository.save(newUser);
             return new ResponseEntity<>(newUser.getUserId(), HttpStatus.OK);
         }
         catch (DataIntegrityViolationException ex)

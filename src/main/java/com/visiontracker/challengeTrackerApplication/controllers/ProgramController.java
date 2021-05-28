@@ -35,7 +35,7 @@ public class ProgramController {
     {
         try
         {
-            if(createProgramReq == null || createProgramReq.getProgram() == null) {
+            if(createProgramReq == null) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Create Program Request");
             }
 
@@ -43,6 +43,11 @@ public class ProgramController {
             {
                 System.out.println("Program must be assigned to a program manager");
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program must be assigned to a program manager");
+            }
+
+            if (programRepository.findProgramByTitle(createProgramReq.getProgram().getTitle()) != null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Program Title");
             }
 
             User programManager = userRepository.findUserById(createProgramReq.getUserId());
