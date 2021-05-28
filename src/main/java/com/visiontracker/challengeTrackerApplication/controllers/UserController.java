@@ -10,12 +10,16 @@ import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import util.exception.InvalidLoginCredentialException;
 
 import javax.persistence.PersistenceException;
+import java.sql.SQLException;
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.List;
 
 
@@ -31,33 +35,32 @@ public class UserController {
     private List<Program> enrolledPrograms;
 
     @PostMapping(path = "/register")
-    public ResponseEntity<Integer> createUser(@RequestBody User newUser) {
+    public ResponseEntity<Object> createUser(@RequestBody User newUser) {
         try
         {
             userRepository.save(newUser);
 
-            return new ResponseEntity<>(newUser.getUserId(), HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(newUser.getUserId(), HttpStatus.OK);
+        }
+        catch (DataIntegrityViolationException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate username or email");
         }
         catch (PersistenceException ex)
         {
-            if (ex.getCause().getCause() != null && ex.getCause().getCause().getClass().getName().equals("java.sql.SQLIntegrityConstraintViolationException")) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
-
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<User> userLogin(@RequestBody LoginReq loginReq) throws InvalidLoginCredentialException {
+    public ResponseEntity<Object> userLogin(@RequestBody LoginReq loginReq) throws InvalidLoginCredentialException {
         System.out.println("Login Req username: " + loginReq.getUsername());
         User user = userRepository.findUserByUsername(loginReq.getUsername());
 
         if (user == null)
         {
             System.out.println("Username not found");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Username not found");
         }
         System.out.println("User Password: " + user.getPassword());
         System.out.println("LoginReq Password: " + loginReq.getPassword());
@@ -65,7 +68,7 @@ public class UserController {
         if (!user.getPassword().equals(loginReq.getPassword()))
         {
             System.out.println("Invalid Password");
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Password");
         }
 
         setEnrolledPrograms(user.getEnrolledPrograms());
@@ -75,7 +78,7 @@ public class UserController {
         user.getEnrolledPrograms().clear();
         user.getMilestonesCreated().clear();
 
-        return new ResponseEntity<>(user, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
     @GetMapping(path = "/retrieveAllUsers")
@@ -93,7 +96,7 @@ public class UserController {
                 u.getMilestonesCreated().clear();
             }
 
-            return new ResponseEntity<>(users, HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(users, HttpStatus.OK);
         }
         catch (Exception ex)
         {

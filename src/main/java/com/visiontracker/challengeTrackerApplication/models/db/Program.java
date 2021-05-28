@@ -37,17 +37,16 @@ import javax.xml.bind.annotation.XmlTransient;
 @Table(name = "program")
 @XmlRootElement
 public class Program implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "programId")
-    private Integer programId;
+    private Long programId;
     @Basic(optional = false)
     //@NotNull
     //@Size(min = 1, max = 64)
-    @Column(name = "title")
+    @Column(name = "title", unique = true, length = 64)
     private String title;
     //@Size(max = 255)
     @Column(name = "description")
@@ -80,15 +79,6 @@ public class Program implements Serializable {
         this.userList = new ArrayList<>();
     }
 
-    public Program(Integer programId) {
-        this.programId = programId;
-    }
-
-    public Program(Integer programId, String title) {
-        this.programId = programId;
-        this.title = title;
-    }
-
     public Program(String title, String description, Date startDate, Date targetCompletionDate) {
         this();
         this.title = title;
@@ -97,11 +87,11 @@ public class Program implements Serializable {
         this.targetCompletionDate = targetCompletionDate;
     }
 
-    public Integer getProgramId() {
+    public Long getProgramId() {
         return programId;
     }
 
-    public void setProgramId(Integer programId) {
+    public void setProgramId(Long programId) {
         this.programId = programId;
     }
 

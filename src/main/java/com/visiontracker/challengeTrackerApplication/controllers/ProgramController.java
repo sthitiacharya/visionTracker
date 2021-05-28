@@ -6,6 +6,7 @@ import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -32,10 +33,10 @@ public class ProgramController {
     private UserController userController;
 
     @PostMapping("/createProgram")
-    public ResponseEntity<Integer> createProgram(@RequestBody CreateProgramReq createProgramReq)
+    public ResponseEntity<Object> createProgram(@RequestBody CreateProgramReq createProgramReq)
     {
         if(createProgramReq == null) {
-            return new ResponseEntity<> (HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Create Program Request");
             //"Invalid Create Program Request"
         }
         try
@@ -51,7 +52,7 @@ public class ProgramController {
             if (createProgramReq.getUserId() == null)
             {
                 System.out.println("Program must be assigned to a program manager");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program must be assigned to a program manager");
             }
 
             User programManager = userRepository.findUserById(createProgramReq.getUserId());
@@ -63,7 +64,7 @@ public class ProgramController {
                 createProgramReq.getUserIds().add(programManager.getUserId());
             }
 
-            for (Integer u : createProgramReq.getUserIds())
+            for (Long u : createProgramReq.getUserIds())
             {
                 User user = userRepository.findUserById(u);
                 createProgramReq.getProgram().getUserList().add(user);
@@ -72,27 +73,31 @@ public class ProgramController {
 
             Program newProgram = programRepository.save(createProgramReq.getProgram());
 
-            return new ResponseEntity<Integer>(newProgram.getProgramId(),HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(newProgram.getProgramId(),HttpStatus.OK);
+        }
+        catch (DataIntegrityViolationException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Program Title");
         }
         catch (PersistenceException ex)
         {
             System.out.println("Persistence Exception");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Persistence Exception");
         }
         catch (ParseException ex)
         {
             System.out.println("Date parsed incorrectly");
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Date parsed incorrectly");
         }
         catch(Exception ex)
         {
             System.out.println("Internal Server Error");
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
         }
     }
 
     @GetMapping(path = "/getEnrolledPrograms")
-    public ResponseEntity<List<Program>> getEnrolledPrograms(@RequestParam(name = "userId") Integer userId)
+    public ResponseEntity<List<Program>> getEnrolledPrograms(@RequestParam(name = "userId") Long userId)
     {
         User user = userRepository.findUserById(userId);
         if (user == null)
@@ -117,17 +122,33 @@ public class ProgramController {
         user.getProgramsManaging().clear();
         user.getMilestoneList().clear();
 
-        return new ResponseEntity<>(programs, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(programs, HttpStatus.OK);
     }
 
     @GetMapping(path = "getEnrolledPrograms/{programId}")
-    public ResponseEntity<Program> retrieveProgram(@PathVariable(value = "programId") Integer programId)
+    public ResponseEntity<Object> retrieveProgram(@PathVariable(name = "programId") Long programId)
     {
-        Program program = programRepository.findProgramById(programId);
+        try
+        {
+            Program program = programRepository.findProgramById(programId);
 
-        program.getUserList().clear();
-        program.getMilestoneList().clear();
+            if (program == null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program not found");
+            }
 
-        return new ResponseEntity<>(program, HttpStatus.ACCEPTED);
+            program.getUserList().clear();
+            program.getMilestoneList().clear();
+            program.getProgramManager().getEnrolledPrograms().clear();
+            program.getProgramManager().getProgramsManaging().clear();
+            program.getProgramManager().getMilestonesCreated().clear();
+            program.getProgramManager().getMilestoneList().clear();
+
+            return new ResponseEntity<>(program, HttpStatus.OK);
+        }
+        catch (Exception ex)
+        {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server Error");
+        }
     }
 }

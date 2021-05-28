@@ -33,7 +33,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Table(name = "milestone")
 @XmlRootElement
 public class Milestone implements Serializable {
-
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -43,7 +42,7 @@ public class Milestone implements Serializable {
     @Basic(optional = false)
     //@NotNull
     //@Size(min = 1, max = 64)
-    @Column(name = "title")
+    @Column(name = "title", unique = true, length = 64)
     private String title;
     //@Size(max = 255)
     @Column(name = "description")

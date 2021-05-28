@@ -33,31 +33,24 @@ import javax.xml.bind.annotation.XmlTransient;
 @Entity
 @Table(name = "user")
 @XmlRootElement
-@NamedQueries({
-    @NamedQuery(name = "User.findAll", query = "SELECT u FROM User u"),
-    @NamedQuery(name = "User.findByUserId", query = "SELECT u FROM User u WHERE u.userId = :userId"),
-    @NamedQuery(name = "User.findByEmail", query = "SELECT u FROM User u WHERE u.email = :email"),
-    @NamedQuery(name = "User.findByUsername", query = "SELECT u FROM User u WHERE u.username = :username"),
-    @NamedQuery(name = "User.findByPassword", query = "SELECT u FROM User u WHERE u.password = :password"),
-    @NamedQuery(name = "User.findByMailingAddress", query = "SELECT u FROM User u WHERE u.mailingAddress = :mailingAddress")})
 public class User implements Serializable {
-
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Basic(optional = false)
     @Column(name = "userId")
-    private Integer userId;
+    private Long userId;
     // @Pattern(regexp="[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", message="Invalid email")//if the field contains email address consider using this annotation to enforce field validation
     @Basic(optional = false)
     //@NotNull
     //@Size(min = 1, max = 255)
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
     @Basic(optional = false)
     //@NotNull
     //@Size(min = 1, max = 64)
-    @Column(name = "username")
+    @Column(name = "username", unique = true, length = 64)
     private String username;
     @Basic(optional = false)
     //@NotNull
@@ -85,11 +78,6 @@ public class User implements Serializable {
         this.programsManaging = new ArrayList<>();
     }
 
-    public User(Integer userId) {
-        this();
-        this.userId = userId;
-    }
-
     public User(String email, String username, String password, String mailingAddress) {
         this();
         this.email = email;
@@ -98,11 +86,11 @@ public class User implements Serializable {
         this.mailingAddress = mailingAddress;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

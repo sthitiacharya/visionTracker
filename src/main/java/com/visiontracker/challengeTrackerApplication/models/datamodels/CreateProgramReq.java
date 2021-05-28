@@ -16,8 +16,8 @@ import java.util.List;
  */
 public class CreateProgramReq {
     private Program program;
-    private Integer userId;
-    private List<Integer> userIds;
+    private Long userId;
+    private List<Long> userIds;
     
     private String startDate;
     private String targetCompletionDate;
@@ -25,7 +25,7 @@ public class CreateProgramReq {
     public CreateProgramReq() {
     }
 
-    public CreateProgramReq(Program program, Integer userId, List<Integer> userIds, String startDate, String targetCompletionDate) {
+    public CreateProgramReq(Program program, Long userId, List<Long> userIds, String startDate, String targetCompletionDate) {
         this.program = program;
         this.userId = userId;
         this.userIds = userIds;
@@ -50,28 +50,28 @@ public class CreateProgramReq {
     /**
      * @return the userId
      */
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
     /**
      * @param userId the userId to set
      */
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
     /**
      * @return the userIds
      */
-    public List<Integer> getUserIds() {
+    public List<Long> getUserIds() {
         return userIds;
     }
 
     /**
      * @param userIds the userIds to set
      */
-    public void setUserIds(List<Integer> userIds) {
+    public void setUserIds(List<Long> userIds) {
         this.userIds = userIds;
     }
 
