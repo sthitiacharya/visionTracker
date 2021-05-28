@@ -13,7 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.PersistenceException;
-import javax.websocket.server.PathParam;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,19 +34,11 @@ public class ProgramController {
     @PostMapping("/createProgram")
     public ResponseEntity<Object> createProgram(@RequestBody CreateProgramReq createProgramReq)
     {
-        if(createProgramReq == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Create Program Request");
-            //"Invalid Create Program Request"
-        }
         try
         {
-            System.out.println("In createProgram RESTful Web Service");
-
-            Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getStartDate());
-            createProgramReq.getProgram().setStartDate(date);
-
-            Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getTargetCompletionDate());
-            createProgramReq.getProgram().setTargetCompletionDate(date2);
+            if(createProgramReq == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Create Program Request");
+            }
 
             if (createProgramReq.getUserId() == null)
             {
@@ -56,22 +47,57 @@ public class ProgramController {
             }
 
             User programManager = userRepository.findUserById(createProgramReq.getUserId());
-            createProgramReq.getProgram().setProgramManager(programManager);
-            createProgramReq.getProgram().getProgramManager().getProgramsManaging().add(createProgramReq.getProgram());
 
-            if (!createProgramReq.getUserIds().contains(programManager.getUserId()))
+            if (programManager == null)
             {
-                createProgramReq.getUserIds().add(programManager.getUserId());
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program Manager not found");
+            }
+
+            if (!programManager.getProgramsManaging().isEmpty())
+            {
+                programManager.getProgramsManaging().clear();
+            }
+            if (!programManager.getMilestoneList().isEmpty())
+            {
+                programManager.getMilestoneList().clear();
+            }
+            if (!programManager.getEnrolledPrograms().isEmpty())
+            {
+                programManager.getEnrolledPrograms().clear();
+            }
+            if (!programManager.getMilestonesCreated().isEmpty())
+            {
+                programManager.getMilestonesCreated().clear();
+            }
+
+            createProgramReq.getProgram().setProgramManager(programManager);
+
+            System.out.println("In createProgram RESTful Web Service");
+
+            Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getStartDate());
+            createProgramReq.getProgram().setStartDate(date);
+
+            Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getTargetCompletionDate());
+            createProgramReq.getProgram().setTargetCompletionDate(date2);
+
+            if (!createProgramReq.getUserIds().contains(createProgramReq.getUserId()))
+            {
+                createProgramReq.getUserIds().add(createProgramReq.getUserId());
             }
 
             for (Long u : createProgramReq.getUserIds())
             {
                 User user = userRepository.findUserById(u);
                 createProgramReq.getProgram().getUserList().add(user);
-                user.getEnrolledPrograms().add(createProgramReq.getProgram());
             }
 
             Program newProgram = programRepository.save(createProgramReq.getProgram());
+
+            newProgram.getProgramManager().getProgramsManaging().add(newProgram);
+            for (User u : newProgram.getUserList())
+            {
+                u.getEnrolledPrograms().add(newProgram);
+            }
 
             return new ResponseEntity<>(newProgram.getProgramId(),HttpStatus.OK);
         }
@@ -92,7 +118,7 @@ public class ProgramController {
         catch(Exception ex)
         {
             System.out.println("Internal Server Error");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Internal Server Error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getCause());
         }
     }
 
@@ -104,6 +130,11 @@ public class ProgramController {
         {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+
+        user.getMilestonesCreated().clear();
+        user.getEnrolledPrograms().clear();
+        user.getProgramsManaging().clear();
+        user.getMilestoneList().clear();
 
         List<Program> programs = programRepository.findAll();
         List<Program> enrolledPrograms = new ArrayList<>();
@@ -117,10 +148,6 @@ public class ProgramController {
             p.getUserList().clear();
             p.getMilestoneList().clear();
         }
-        user.getMilestonesCreated().clear();
-        user.getEnrolledPrograms().clear();
-        user.getProgramsManaging().clear();
-        user.getMilestoneList().clear();
 
         return new ResponseEntity<>(programs, HttpStatus.OK);
     }
@@ -137,12 +164,22 @@ public class ProgramController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program not found");
             }
 
-            program.getUserList().clear();
-            program.getMilestoneList().clear();
-            program.getProgramManager().getEnrolledPrograms().clear();
-            program.getProgramManager().getProgramsManaging().clear();
-            program.getProgramManager().getMilestonesCreated().clear();
-            program.getProgramManager().getMilestoneList().clear();
+            if (!program.getMilestoneList().isEmpty())
+            {
+                program.getMilestoneList().clear();
+            }
+            if (!program.getUserList().isEmpty())
+            {
+                program.getUserList().clear();
+            }
+
+            if (program.getProgramManager() != null)
+            {
+                program.getProgramManager().getEnrolledPrograms().clear();
+                program.getProgramManager().getProgramsManaging().clear();
+                program.getProgramManager().getMilestonesCreated().clear();
+                program.getProgramManager().getMilestoneList().clear();
+            }
 
             return new ResponseEntity<>(program, HttpStatus.OK);
         }

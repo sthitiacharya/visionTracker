@@ -68,7 +68,7 @@ public class Program implements Serializable {
         @JoinColumn(name = "programMember", referencedColumnName = "userId")})
     @ManyToMany
     private List<User> userList;
-    @OneToMany(cascade = CascadeType.ALL, mappedBy = "programId")
+    @OneToMany(mappedBy = "programId")
     private List<Milestone> milestoneList;
     @JoinColumn(name = "programManager", referencedColumnName = "userId")
     @ManyToOne(optional = false)

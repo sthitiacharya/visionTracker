@@ -5,10 +5,15 @@ import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateMil
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
+import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -21,6 +26,8 @@ import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+@SpringBootTest
+@AutoConfigureMockMvc
 public class MilestoneControllerTest {
     @MockBean
     private MilestoneRepository milestoneRepository;
@@ -31,20 +38,31 @@ public class MilestoneControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockBean
+    private UserRepository userRepository;
+
+    @Autowired
+    private ProgramRepository programRepository;
+
     //creation of new milestone: success
     @Test
     public void testMilestoneController01() throws Exception {
-            String stringDate = "12-05-2021";
-            Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
-                    new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        String stringDate = "12-05-2021";
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
 
-            CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, 1l, stringDate);
-            String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
-            System.out.println(requestContent);
-            mockMvc.perform(MockMvcRequestBuilders.post("/Milestone/createMilestone").contentType(APPLICATION_JSON).content(requestContent))
-                    .andExpect(MockMvcResultMatchers.status().isOk());
-            Mockito.verify(milestoneRepository, Mockito.atMostOnce()).save(newMilestone);
+        User u = userRepository.findUserById(Long.valueOf(1));
+        newMilestone.setMilestoneCreatedBy(u);
+        Long programId = Long.valueOf(1);
 
+        //Program p = programRepository.findProgramById(programId);
+        //newMilestone.setProgramId(p);
+        CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, programId, stringDate);
+        String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
+        System.out.println(requestContent);
+        mockMvc.perform(MockMvcRequestBuilders.post("/Milestone/createMilestone").contentType(APPLICATION_JSON).content(requestContent))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+        Mockito.verify(milestoneRepository, Mockito.atMostOnce()).save(newMilestone);
     }
 
     //creation of new milestone: fail due to duplicate entry
@@ -53,7 +71,12 @@ public class MilestoneControllerTest {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        User u = userRepository.findUserById(Long.valueOf(1));
+        newMilestone.setMilestoneCreatedBy(u);
 
+        //Long programId = Long.valueOf(1);
+        //Program p = programRepository.findProgramById(programId);
+        //newMilestone.setProgramId(p);
         CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, 1l, stringDate);
         String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
         System.out.println(requestContent);
@@ -69,10 +92,19 @@ public class MilestoneControllerTest {
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
 
+        User u = userRepository.findUserById(Long.valueOf(1));
+        newMilestone.setMilestoneCreatedBy(u);
+
+        /*
+        u.getEnrolledPrograms().clear();
+        u.getMilestoneList().clear();
+        u.getMilestonesCreated().clear();
+        u.getProgramsManaging().clear();
+        */
         CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, null, stringDate);
         String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
         System.out.println(requestContent);
-        mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
+        mockMvc.perform(MockMvcRequestBuilders.post("/Milestone/createMilestone").contentType(APPLICATION_JSON).content(requestContent))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
@@ -82,7 +114,7 @@ public class MilestoneControllerTest {
         Long programId = Long.valueOf(1);
         String requestContent = objectMapper.writeValueAsString(programId);
         System.out.println(requestContent);
-        mockMvc.perform(MockMvcRequestBuilders.get("/Milestone/getProgramMilestones").contentType(APPLICATION_JSON).content(requestContent))
+        mockMvc.perform(MockMvcRequestBuilders.get("/Milestone/getProgramMilestones").queryParam("programId", requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }

@@ -102,7 +102,7 @@ public class Milestone implements Serializable {
     private User assignedUser;
     @JoinColumn(name = "milestoneCreatedBy", referencedColumnName = "userId")
     @ManyToOne(optional = false)
-    private com.visiontracker.challengeTrackerApplication.models.db.User milestoneCreatedBy;
+    private User milestoneCreatedBy;
 
     public Milestone() {
     }

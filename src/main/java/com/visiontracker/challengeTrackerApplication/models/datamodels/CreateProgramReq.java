@@ -8,6 +8,7 @@ package com.visiontracker.challengeTrackerApplication.models.datamodels;
 
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,9 +24,12 @@ public class CreateProgramReq {
     private String targetCompletionDate;
     
     public CreateProgramReq() {
+        program = new Program();
+        userIds = new ArrayList<>();
     }
 
     public CreateProgramReq(Program program, Long userId, List<Long> userIds, String startDate, String targetCompletionDate) {
+        this();
         this.program = program;
         this.userId = userId;
         this.userIds = userIds;

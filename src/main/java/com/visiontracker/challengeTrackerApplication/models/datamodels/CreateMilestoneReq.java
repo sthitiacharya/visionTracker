@@ -20,7 +20,7 @@ public class CreateMilestoneReq {
 
     public CreateMilestoneReq()
     {
-        
+        milestone = new Milestone();
     }
 
     public CreateMilestoneReq(Milestone milestone, Long programId, String targetCompletionDate) {

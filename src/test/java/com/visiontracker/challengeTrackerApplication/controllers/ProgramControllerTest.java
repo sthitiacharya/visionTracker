@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.controllers;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
@@ -7,6 +8,8 @@ import com.visiontracker.challengeTrackerApplication.repositories.ProgramReposit
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -19,6 +22,8 @@ import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
+@SpringBootTest
+@AutoConfigureMockMvc
 public class ProgramControllerTest {
     @MockBean
     private ProgramRepository programRepository;
@@ -39,6 +44,7 @@ public class ProgramControllerTest {
         List<Long> users = new ArrayList<>();
         users.add(1l);
         CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1l, users, stringDate, stringDate2);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         String requestContent = objectMapper.writeValueAsString(newProgramReq);
         System.out.println(requestContent);
         mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
@@ -58,6 +64,7 @@ public class ProgramControllerTest {
         List<Long> users = new ArrayList<>();
         users.add(1l);
         CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1l, users, stringDate, stringDate2);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         String requestContent = objectMapper.writeValueAsString(newProgramReq);
         System.out.println(requestContent);
         mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent))
@@ -88,7 +95,9 @@ public class ProgramControllerTest {
     @Test
     public void testProgramController04() throws Exception
     {
-        mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms").contentType(APPLICATION_JSON))
+        Long userId = Long.valueOf(1);
+        String requestContent = objectMapper.writeValueAsString(userId);
+        mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms").queryParam("userId", requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
         //Mockito.verify(programRepository, Mockito.atMostOnce()).findAll();
     }
@@ -97,9 +106,12 @@ public class ProgramControllerTest {
     @Test
     public void testProgramController05() throws Exception
     {
+        Program p = new Program();
+        p.setProgramId(1l);
+        Mockito.when(programRepository.findProgramById(1l)).thenReturn(p);
         Long programId = Long.valueOf(1);
         String requestContent = objectMapper.writeValueAsString(programId);
-        mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms").contentType(APPLICATION_JSON).content(requestContent))
+        mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms/{programId}", programId).param("programId", requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
         Mockito.verify(programRepository, Mockito.atMostOnce()).findProgramById(programId);
     }

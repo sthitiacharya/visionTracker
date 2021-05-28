@@ -34,7 +34,13 @@ public class MilestoneController {
         {
             if(createMilestoneReq == null) {
                 System.out.println("Invalid create new product request");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid create new product request");
+            }
+
+            if (createMilestoneReq.getProgramId() == null)
+            {
+                System.out.println("Milestones need to be associated with a program");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Milestones need to be associated with a program");
             }
 
             System.out.println("In createMilestone RESTful Web Service");
@@ -43,17 +49,21 @@ public class MilestoneController {
             Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createMilestoneReq.getTargetCompletionDate());
             createMilestoneReq.getMilestone().setTargetCompletionDate(date);
 
-            if (createMilestoneReq.getProgramId() == null)
-            {
-                System.out.println("Milestones need to be associated with a program");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-
             Program program = programRepository.findProgramById(createMilestoneReq.getProgramId());
             createMilestoneReq.getMilestone().setProgramId(program);
-            program.getMilestoneList().add(createMilestoneReq.getMilestone());
+
+            if (!program.getMilestoneList().isEmpty())
+            {
+                program.getMilestoneList().clear();
+            }
+
+            if (!program.getUserList().isEmpty())
+            {
+                program.getUserList().clear();
+            }
 
             Milestone newMilestone = milestoneRepository.save(createMilestoneReq.getMilestone());
+            program.getMilestoneList().add(newMilestone);
 
             System.out.println("********** MilestoneController.createMilestone(): Milestone " + newMilestone.getMilestoneId() + " details passed in");
 
@@ -72,7 +82,7 @@ public class MilestoneController {
         }
         catch(Exception ex)
         {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }
 
