@@ -1,6 +1,7 @@
 package com.visiontracker.challengeTrackerApplication.controllers;
 
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateMilestoneReq;
+import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateMilestoneReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
@@ -124,6 +125,82 @@ public class MilestoneController {
         catch (Exception ex)
         {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server Error");
+        }
+    }
+
+    @PutMapping(path = "/editMilestone")
+    public ResponseEntity<Object> editMilestone(@RequestBody UpdateMilestoneReq updateMilestoneReq)
+    {
+        try
+        {
+            if(updateMilestoneReq == null) {
+                System.out.println("Invalid update milestone request");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid update product request");
+            }
+
+            if (updateMilestoneReq.getMilestone() == null || updateMilestoneReq.getMilestone().getMilestoneId() == null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Milestone ID not provided for milestone to be updated");
+            }
+            Milestone milestoneToUpdate = milestoneRepository.findMilestoneByMilestoneId(updateMilestoneReq.getMilestone().getMilestoneId());
+
+            if (updateMilestoneReq.getProgramId() == null)
+            {
+                System.out.println("Milestones need to be associated with a program");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Milestones need to be associated with a program");
+            }
+            Program program = programRepository.findProgramById(updateMilestoneReq.getProgramId());
+            milestoneToUpdate.setProgramId(program);
+
+            if (!program.getMilestoneList().isEmpty())
+            {
+                program.getMilestoneList().clear();
+            }
+
+            if (!program.getUserList().isEmpty())
+            {
+                program.getUserList().clear();
+            }
+
+            Milestone milestone = milestoneRepository.findMilestoneByTitle(updateMilestoneReq.getMilestone().getTitle());
+            if (milestone != null && !milestone.getMilestoneId().equals(milestoneToUpdate.getMilestoneId()))
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Milestone Title");
+            }
+            milestoneToUpdate.setTitle(updateMilestoneReq.getMilestone().getTitle());
+            milestoneToUpdate.setDescription(updateMilestoneReq.getMilestone().getDescription());
+            milestoneToUpdate.setMilestoneType(updateMilestoneReq.getMilestone().getMilestoneType());
+            milestoneToUpdate.setInitialValue(updateMilestoneReq.getMilestone().getInitialValue());
+            milestoneToUpdate.setTargetValue(updateMilestoneReq.getMilestone().getTargetValue());
+            milestoneToUpdate.setRewardValue(updateMilestoneReq.getMilestone().getRewardValue());
+            milestoneToUpdate.setValueCategory(updateMilestoneReq.getMilestone().getValueCategory());
+            milestoneToUpdate.setValueType(updateMilestoneReq.getMilestone().getValueType());
+
+            System.out.println("In createMilestone RESTful Web Service");
+            Date date = new SimpleDateFormat("dd-MM-yyyy").parse(updateMilestoneReq.getTargetCompletionDate());
+            milestoneToUpdate.setTargetCompletionDate(date);
+
+            Milestone updatedMilestone = milestoneRepository.save(milestoneToUpdate);
+            program.getMilestoneList().add(updatedMilestone);
+
+            System.out.println("********** MilestoneController.editMilestone(): Milestone " + updatedMilestone.getMilestoneId() + " details updated");
+
+            return new ResponseEntity<>(updatedMilestone.getMilestoneId(), HttpStatus.OK);
+        }
+        catch (DataIntegrityViolationException ex)
+        {
+            System.out.println("Milestone Title Already Exists");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Milestone Title");
+        }
+        catch(PersistenceException ex)
+        {
+            System.out.println("Unknown Persistence Exception");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+        catch(Exception ex)
+        {
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }
 }

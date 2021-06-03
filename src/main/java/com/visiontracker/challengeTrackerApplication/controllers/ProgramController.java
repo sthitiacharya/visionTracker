@@ -2,6 +2,7 @@ package com.visiontracker.challengeTrackerApplication.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
+import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
@@ -213,6 +214,114 @@ public class ProgramController {
         catch (Exception ex)
         {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server Error");
+        }
+    }
+
+    @PutMapping("/editProgram")
+    public ResponseEntity<Object> editProgram(@RequestBody UpdateProgramReq updateProgramReq)
+    {
+        try
+        {
+            if(updateProgramReq == null) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Update Program Request");
+            }
+
+            if (updateProgramReq.getProgram() == null || updateProgramReq.getProgram().getProgramId() == null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program ID not provided for program to be updated");
+            }
+
+            Program programToUpdate = programRepository.findProgramById(updateProgramReq.getProgram().getProgramId());
+
+            User user = userRepository.findUserById(updateProgramReq.getUserLoggedIn());
+            if (!programToUpdate.getProgramManager().equals(user))
+            {
+                System.out.println("Program can only be updated by the program manager");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program can only be updated by the program manager");
+            }
+
+            Program program = programRepository.findProgramByTitle(updateProgramReq.getProgram().getTitle());
+            if (program != null && !program.getProgramId().equals(programToUpdate.getProgramId()))
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Program Title");
+            }
+
+            programToUpdate.setTitle(updateProgramReq.getProgram().getTitle());
+            programToUpdate.setDescription(updateProgramReq.getProgram().getDescription());
+
+            User programManager = userRepository.findUserById(updateProgramReq.getUserId());
+
+            if (programManager == null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program Manager not found");
+            }
+
+            clearLists(programManager);
+
+            programToUpdate.setProgramManager(programManager);
+            programManager.getProgramsManaging().add(programToUpdate);
+
+            System.out.println("In editProgram RESTful Web Service");
+
+            Date date = new SimpleDateFormat("dd-MM-yyyy").parse(updateProgramReq.getStartDate());
+            programToUpdate.setStartDate(date);
+
+            Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(updateProgramReq.getTargetCompletionDate());
+            programToUpdate.setTargetCompletionDate(date2);
+
+            if (!updateProgramReq.getUserIds().contains(updateProgramReq.getUserId()))
+            {
+                updateProgramReq.getUserIds().add(updateProgramReq.getUserId());
+            }
+
+            for (Long u : updateProgramReq.getUserIds())
+            {
+                User enrolledUser = userRepository.findUserById(u);
+                clearLists(enrolledUser);
+                programToUpdate.getUserList().add(enrolledUser);
+                user.getEnrolledPrograms().add(programToUpdate);
+            }
+
+            Program updatedProgram = programRepository.save(programToUpdate);
+            System.out.println(updatedProgram);
+
+            for (User u : updatedProgram.getUserList())
+            {
+                u.getEnrolledPrograms().clear();
+                u.getMilestonesCreated().clear();
+                u.getProgramsManaging().clear();
+                u.getMilestoneList().clear();
+            }
+            updatedProgram.getUserList().clear();
+            updatedProgram.getMilestoneList().clear();
+
+            return new ResponseEntity<>(updatedProgram.getProgramId(), HttpStatus.OK);
+        }
+        catch (DataIntegrityViolationException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Duplicate Program Title");
+        }
+        catch (PersistenceException ex)
+        {
+            System.out.println("Persistence Exception");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Persistence Exception");
+        }
+        catch (ParseException ex)
+        {
+            System.out.println("Date parsed incorrectly");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Date parsed incorrectly");
+        }
+        catch(IllegalArgumentException ex)
+        {
+            System.out.println("Illegal Argument Error");
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
+        }
+        catch(Exception ex)
+        {
+            System.out.println("Internal Server Error");
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
         }
     }
 }

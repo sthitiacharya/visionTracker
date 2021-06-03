@@ -17,4 +17,7 @@ public interface MilestoneRepository extends CrudRepository<Milestone, Long> {
 
     @Query("select m from Milestone m where m.title = :title")
     Milestone findMilestoneByTitle(@Param("title") String title);
+
+    @Query("select m from Milestone m where m.milestoneId = :milestoneId")
+    Milestone findMilestoneByMilestoneId(@Param("milestoneId") Long milestoneId);
 }

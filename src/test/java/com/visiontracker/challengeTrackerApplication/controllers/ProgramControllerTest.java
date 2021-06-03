@@ -3,6 +3,7 @@ package com.visiontracker.challengeTrackerApplication.controllers;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
+import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
 import org.junit.jupiter.api.Test;
@@ -118,5 +119,31 @@ public class ProgramControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms/{programId}", programId).param("programId", requestContent))
                 .andExpect(MockMvcResultMatchers.status().isOk());
         Mockito.verify(programRepository, Mockito.atMostOnce()).findProgramById(programId);
+    }
+
+    //edit program: success
+    @Test
+    public void testProgramController06() throws Exception
+    {
+        String stringDate = "12-05-2021";
+        String stringDate2 = "17-05-2021";
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        List<Long> users = new ArrayList<>();
+        users.add(1L);
+        CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1L, users, stringDate, stringDate2);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        String requestContent1 = objectMapper.writeValueAsString(newProgramReq);
+        //System.out.println(requestContent);
+        mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent1))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+        Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
+
+        newProgram.setTitle("Updated Title");
+        newProgram.setDescription("Updated description");
+        UpdateProgramReq editProgramReq = new UpdateProgramReq(newProgram, 1L, users, stringDate, stringDate2, 1L);
+        String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
+        mockMvc.perform(MockMvcRequestBuilders.post("/Program/editProgram").contentType(APPLICATION_JSON).content(requestContent2))
+                .andExpect(MockMvcResultMatchers.status().isOk());
     }
 }
