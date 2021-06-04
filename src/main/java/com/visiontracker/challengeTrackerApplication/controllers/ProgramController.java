@@ -226,7 +226,7 @@ public class ProgramController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid Update Program Request");
             }
 
-            if (updateProgramReq.getProgram() == null || updateProgramReq.getProgram().getProgramId() == null)
+            if (updateProgramReq.getProgram().getProgramId() == null)
             {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Program ID not provided for program to be updated");
             }

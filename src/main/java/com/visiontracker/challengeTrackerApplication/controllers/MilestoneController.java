@@ -128,14 +128,49 @@ public class MilestoneController {
         }
     }
 
-    @PutMapping(path = "/editMilestone")
-    public ResponseEntity<Object> editMilestone(@RequestBody UpdateMilestoneReq updateMilestoneReq)
+    @GetMapping(path = "/{milestoneId}")
+    public ResponseEntity<Object> retrieveMilestone(@PathVariable(name = "milestoneId") Long milestoneId)
+    {
+        try
+        {
+            Milestone milestone = milestoneRepository.findMilestoneByMilestoneId(milestoneId);
+
+            if (milestone == null)
+            {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Milestone not found");
+            }
+
+            if (milestone.getProgramId() != null)
+            {
+                milestone.getProgramId().getMilestoneList().clear();
+                milestone.getProgramId().getUserList().clear();
+            }
+
+            if (milestone.getMilestoneCreatedBy() != null)
+            {
+                milestone.getMilestoneCreatedBy().getMilestoneList().clear();
+                milestone.getMilestoneCreatedBy().getMilestonesCreated().clear();
+                milestone.getMilestoneCreatedBy().getProgramsManaging().clear();
+                milestone.getMilestoneCreatedBy().getEnrolledPrograms().clear();
+            }
+
+            return new ResponseEntity<>(milestone, HttpStatus.OK);
+        }
+        catch (Exception ex)
+        {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server Error");
+        }
+    }
+
+    @PutMapping(path = "/editMilestone/{milestoneId}")
+    public ResponseEntity<Object> editMilestone(@PathVariable(name = "milestoneId") Long milestoneId
+                                                , @RequestBody UpdateMilestoneReq updateMilestoneReq)
     {
         try
         {
             if(updateMilestoneReq == null) {
                 System.out.println("Invalid update milestone request");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid update product request");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid update milestone request");
             }
 
             if (updateMilestoneReq.getMilestone() == null || updateMilestoneReq.getMilestone().getMilestoneId() == null)

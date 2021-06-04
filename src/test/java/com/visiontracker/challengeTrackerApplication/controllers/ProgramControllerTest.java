@@ -5,7 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
+import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
@@ -30,6 +33,9 @@ public class ProgramControllerTest {
     @MockBean
     private ProgramRepository programRepository;
 
+    @MockBean
+    private UserRepository userRepository;
+
     @Autowired
     private ObjectMapper objectMapper;
 
@@ -43,6 +49,8 @@ public class ProgramControllerTest {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
@@ -101,6 +109,8 @@ public class ProgramControllerTest {
     @Test
     public void testProgramController04() throws Exception
     {
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
         Long userId = 1L;
         String requestContent = objectMapper.writeValueAsString(userId);
         mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms").queryParam("userId", requestContent))
@@ -128,22 +138,54 @@ public class ProgramControllerTest {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        newProgram.setProgramManager(user);
+        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
-        CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1L, users, stringDate, stringDate2);
+        //CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1L, users, stringDate, stringDate2);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        String requestContent1 = objectMapper.writeValueAsString(newProgramReq);
+        //String requestContent1 = objectMapper.writeValueAsString(newProgramReq);
         //System.out.println(requestContent);
-        mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent1))
-                .andExpect(MockMvcResultMatchers.status().isOk());
-        Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
+        //MvcResult programId = mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent1)).andReturn();
+        //Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
 
+        newProgram.setProgramId(1L);
         newProgram.setTitle("Updated Title");
         newProgram.setDescription("Updated description");
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(newProgram);
         UpdateProgramReq editProgramReq = new UpdateProgramReq(newProgram, 1L, users, stringDate, stringDate2, 1L);
         String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
-        mockMvc.perform(MockMvcRequestBuilders.post("/Program/editProgram").contentType(APPLICATION_JSON).content(requestContent2))
+        mockMvc.perform(MockMvcRequestBuilders.put("/Program/editProgram").contentType(APPLICATION_JSON).content(requestContent2))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    //edit program: failure as user is not program manager
+    @Test
+    public void testProgramController07() throws Exception
+    {
+        String stringDate = "12-05-2021";
+        String stringDate2 = "17-05-2021";
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        User user1 = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        User user2 = new User("user2@mail.com", "username2", "password", "Mailing Address Avenue");
+        user2.setUserId(2L);
+        newProgram.setProgramManager(user2);
+        Mockito.when(userRepository.findUserById(1L)).thenReturn(user1);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        List<Long> users = new ArrayList<>();
+        users.add(1L);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        newProgram.setProgramId(1L);
+        newProgram.setTitle("Updated Title");
+        newProgram.setDescription("Updated description");
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(newProgram);
+        UpdateProgramReq editProgramReq = new UpdateProgramReq(newProgram, 1L, users, stringDate, stringDate2, 1L);
+        String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
+        mockMvc.perform(MockMvcRequestBuilders.put("/Program/editProgram").contentType(APPLICATION_JSON).content(requestContent2))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+        .andExpect(MockMvcResultMatchers.content().string("Program can only be updated by the program manager"));
     }
 }
