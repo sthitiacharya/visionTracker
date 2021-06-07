@@ -191,4 +191,17 @@ public class MilestoneService {
 
         return new ResponseEntity<>(updatedMilestone.getMilestoneId(), HttpStatus.OK);
     }
+
+    public ResponseEntity<Object> deleteMilestone(Long milestoneId) throws MilestoneNotFoundException {
+        Milestone milestoneToDelete = milestoneRepository.findMilestoneByMilestoneId(milestoneId);
+
+        if (milestoneToDelete == null)
+        {
+            throw new MilestoneNotFoundException("Milestone not found");
+        }
+
+        milestoneRepository.delete(milestoneToDelete);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

@@ -20,9 +20,6 @@ public class MilestoneController {
     @Autowired
     private MilestoneService milestoneService;
 
-    @Autowired
-    private ProgramRepository programRepository;
-
     @PostMapping(path = "/createMilestone")
     public ResponseEntity<Object> createMilestone(@RequestBody CreateMilestoneReq createMilestoneReq)
     {
@@ -82,6 +79,23 @@ public class MilestoneController {
         catch(Exception ex)
         {
             ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
+    }
+
+    @DeleteMapping("/deleteMilestone/{milestoneId}")
+    public ResponseEntity<Object> deleteMilestone(@PathVariable(name = "milestoneId") Long milestoneId)
+    {
+        try
+        {
+            return milestoneService.deleteMilestone(milestoneId);
+        }
+        catch (MilestoneNotFoundException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+        catch (Exception ex)
+        {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }

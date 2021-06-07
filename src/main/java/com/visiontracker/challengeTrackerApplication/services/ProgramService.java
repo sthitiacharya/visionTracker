@@ -2,8 +2,12 @@ package com.visiontracker.challengeTrackerApplication.services;
 
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateProgramReq;
+import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
+import com.visiontracker.challengeTrackerApplication.models.db.ProgramMember;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
+import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.ProgramMemberRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +18,6 @@ import util.exception.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +28,14 @@ public class ProgramService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private MilestoneRepository milestoneRepository;
+
+    @Autowired
+    private ProgramMemberRepository programMemberRepository;
+
+    private List<Program> enrolledPrograms;
 
     public ResponseEntity<Object> createProgram(CreateProgramReq createProgramReq) throws CreateNewProgramException, ProgramTitleExistException
     {
@@ -70,24 +81,29 @@ public class ProgramService {
             for (Long u : createProgramReq.getUserIds())
             {
                 User user = userRepository.findUserById(u);
-                clearLists(user);
+                //clearLists(user);
                 createProgramReq.getProgram().getUserList().add(user);
-                user.getEnrolledPrograms().add(createProgramReq.getProgram());
             }
 
             Program newProgram = programRepository.save(createProgramReq.getProgram());
-            System.out.println(newProgram);
+            for (Long u : createProgramReq.getUserIds())
+            {
+                User user = userRepository.findUserById(u);
+                user.getEnrolledPrograms().add(newProgram);
+                userRepository.save(user);
+                ProgramMember pm = new ProgramMember(user, newProgram);
+                programMemberRepository.save(pm);
+            }
 
+            //System.out.println(newProgram);
+            /*
             for (User u : newProgram.getUserList())
             {
-                u.getEnrolledPrograms().clear();
-                u.getMilestonesCreated().clear();
-                u.getProgramsManaging().clear();
-                u.getMilestoneList().clear();
+                clearLists(u);
             }
             newProgram.getUserList().clear();
             newProgram.getMilestoneList().clear();
-
+             */
             return new ResponseEntity<>(newProgram.getProgramId(), HttpStatus.OK);
         }
         catch (ParseException ex) {
@@ -123,19 +139,34 @@ public class ProgramService {
         }
         clearLists(user);
 
-        List<Program> programs = programRepository.findAll();
-        List<Program> enrolledPrograms = new ArrayList<>();
+        List<Program> programs = programRepository.findProgramsByUserId(user);
 
         for (Program p : programs)
         {
-            if (p.getUserList().contains(user))
+            if (!p.getUserList().isEmpty())
             {
-                enrolledPrograms.add(p);
+                p.getUserList().clear();
             }
-            p.getUserList().clear();
-            p.getMilestoneList().clear();
+            if (!p.getMilestoneList().isEmpty())
+            {
+                p.getMilestoneList().clear();
+            }
         }
 
+        /*
+        for (Program program : enrolledPrograms)
+        {
+            if (!program.getUserList().isEmpty())
+            {
+                program.getUserList().clear();
+            }
+            if (!program.getMilestoneList().isEmpty())
+            {
+                program.getMilestoneList().clear();
+            }
+        }
+         */
+        System.out.println(programs);
         return new ResponseEntity<>(programs, HttpStatus.OK);
     }
 
@@ -190,6 +221,11 @@ public class ProgramService {
 
             Program programToUpdate = programRepository.findProgramById(updateProgramReq.getProgram().getProgramId());
 
+            List<ProgramMember> programMembers = programMemberRepository.findProgramMembersByProgramId(programToUpdate);
+            for (ProgramMember pm : programMembers)
+            {
+                programMemberRepository.delete(pm);
+            }
             User user = userRepository.findUserById(updateProgramReq.getUserLoggedIn());
             if (!programToUpdate.getProgramManager().equals(user))
             {
@@ -233,12 +269,23 @@ public class ProgramService {
                 User enrolledUser = userRepository.findUserById(u);
                 clearLists(enrolledUser);
                 programToUpdate.getUserList().add(enrolledUser);
-                user.getEnrolledPrograms().add(programToUpdate);
+
+                //user.getEnrolledPrograms().add(programToUpdate);
             }
 
             Program updatedProgram = programRepository.save(programToUpdate);
             System.out.println(updatedProgram);
 
+            for (Long u : updateProgramReq.getUserIds())
+            {
+                User user1 = userRepository.findUserById(u);
+                user1.getEnrolledPrograms().add(updatedProgram);
+                userRepository.save(user);
+                ProgramMember pm = new ProgramMember(user, updatedProgram);
+                programMemberRepository.save(pm);
+
+            }
+            /*
             for (User u : updatedProgram.getUserList())
             {
                 u.getEnrolledPrograms().clear();
@@ -248,7 +295,7 @@ public class ProgramService {
             }
             updatedProgram.getUserList().clear();
             updatedProgram.getMilestoneList().clear();
-
+             */
             return new ResponseEntity<>(updatedProgram.getProgramId(), HttpStatus.OK);
         }
         catch (ParseException ex)
@@ -256,5 +303,33 @@ public class ProgramService {
             System.out.println("Date parsed incorrectly");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Date parsed incorrectly");
         }
+    }
+
+    public ResponseEntity<Object> deleteProgram(Long programId) throws ProgramNotFoundException {
+        Program programToDelete = programRepository.findProgramById(programId);
+
+        if (programToDelete == null)
+        {
+            throw new ProgramNotFoundException("Program not found");
+        }
+
+        List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(programToDelete);
+
+        for (Milestone m : milestones)
+        {
+            milestoneRepository.delete(m);
+        }
+
+        programRepository.delete(programToDelete);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    public List<Program> getEnrolledPrograms() {
+        return enrolledPrograms;
+    }
+
+    public void setEnrolledPrograms(List<Program> enrolledPrograms) {
+        this.enrolledPrograms = enrolledPrograms;
     }
 }

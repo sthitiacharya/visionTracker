@@ -83,4 +83,21 @@ public class ProgramController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
         }
     }
+
+    @DeleteMapping("/deleteProgram/{programId}")
+    public ResponseEntity<Object> deleteProgram(@PathVariable(name = "programId") Long programId)
+    {
+        try
+        {
+            return programService.deleteProgram(programId);
+        }
+        catch (ProgramNotFoundException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+        catch (Exception ex)
+        {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
+    }
 }

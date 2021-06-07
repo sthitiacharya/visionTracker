@@ -89,12 +89,6 @@ public class MilestoneControllerTest {
         User u = userRepository.findUserById(Long.valueOf(1));
         newMilestone.setMilestoneCreatedBy(u);
 
-        /*
-        u.getEnrolledPrograms().clear();
-        u.getMilestoneList().clear();
-        u.getMilestonesCreated().clear();
-        u.getProgramsManaging().clear();
-        */
         CreateMilestoneReq newMilestoneReq = new CreateMilestoneReq(newMilestone, null, stringDate);
         String requestContent = objectMapper.writeValueAsString(newMilestoneReq);
         System.out.println(requestContent);

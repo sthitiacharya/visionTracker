@@ -8,19 +8,8 @@ package com.visiontracker.challengeTrackerApplication.models.db;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import java.util.List;
+import javax.persistence.*;
 //import javax.validation.constraints.NotNull;
 //import javax.validation.constraints.Size;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -92,8 +81,7 @@ public class Milestone implements Serializable {
     @Temporal(TemporalType.DATE)
     private Date reminderStartDate;
     @Column(name = "reminderInterval")
-    @Temporal(TemporalType.DATE)
-    private Date reminderInterval;
+    private String reminderInterval;
     @JoinColumn(name = "programId", referencedColumnName = "programId")
     @ManyToOne(optional = false)
     private Program programId;
@@ -103,6 +91,9 @@ public class Milestone implements Serializable {
     @JoinColumn(name = "milestoneCreatedBy", referencedColumnName = "userId")
     @ManyToOne(optional = false)
     private User milestoneCreatedBy;
+
+    @OneToMany(mappedBy = "milestoneId")
+    private List<ProgressHistory> progressHistories;
 
     public Milestone() {
     }
@@ -228,11 +219,11 @@ public class Milestone implements Serializable {
         this.reminderStartDate = reminderStartDate;
     }
 
-    public Date getReminderInterval() {
+    public String getReminderInterval() {
         return reminderInterval;
     }
 
-    public void setReminderInterval(Date reminderInterval) {
+    public void setReminderInterval(String reminderInterval) {
         this.reminderInterval = reminderInterval;
     }
 
@@ -284,5 +275,12 @@ public class Milestone implements Serializable {
     public String toString() {
         return "entity.Milestone[ milestoneId=" + milestoneId + " ]";
     }
-    
+
+    public List<ProgressHistory> getProgressHistories() {
+        return progressHistories;
+    }
+
+    public void setProgressHistories(List<ProgressHistory> progressHistories) {
+        this.progressHistories = progressHistories;
+    }
 }

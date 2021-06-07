@@ -1,6 +1,7 @@
 package com.visiontracker.challengeTrackerApplication.repositories;
 
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
+import com.visiontracker.challengeTrackerApplication.models.db.User;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -19,4 +20,7 @@ public interface ProgramRepository extends CrudRepository<Program, Long> {
 
     @Query("select p from Program p")
     List<Program> findAll();
+
+    @Query("select pm.programId from ProgramMember pm where pm.userId = :userId")
+    List<Program> findProgramsByUserId(@Param("userId") User userId);
 }
