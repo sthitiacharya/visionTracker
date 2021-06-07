@@ -3,6 +3,7 @@ package com.visiontracker.challengeTrackerApplication.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateMilestoneReq;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgHistoryReq;
+import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.ProgressHistory;
@@ -108,5 +109,182 @@ public class ProgressHistoryControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.post("/ProgressHistory/logProgress").contentType(APPLICATION_JSON).content(requestContent))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Milestone not found"));
+    }
+
+    //retrieval of milestone progress histories
+    @Test
+    public void testProgressHistoryController03() throws Exception
+    {
+        Milestone milestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);;
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(1L)).thenReturn(milestone);
+        Long milestoneId = 1L;
+        String requestContent = objectMapper.writeValueAsString(milestoneId);
+        mockMvc.perform(MockMvcRequestBuilders.get("/ProgressHistory/progressHistories/{milestoneId}", 1L))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    //retrieval of individual progress history
+    @Test
+    public void testProgressHistoryController04() throws Exception
+    {
+        ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
+        newProgressHistory.setProgressHistoryId(1L);
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        newProgram.setCurrentProgressRate(0.00);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        newProgram.setProgramManager(user);
+        newProgram.setProgramId(1L);
+
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        Long milestoneId = Long.valueOf(1);
+        newMilestone.setProgramId(newProgram);
+        newMilestone.setMilestoneId(milestoneId);
+        newMilestone.setMilestoneCreatedBy(user);
+
+        newProgressHistory.setMilestoneId(newMilestone);
+        newProgressHistory.setProgramId(newProgram);
+
+        Mockito.when(progressHistoryRepository.findProgressHistoryByProgressHistoryId(1L)).thenReturn(newProgressHistory);
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/ProgressHistory/progressHistory/{progressHistoryId}", 1L))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    //edit progress history: success
+    @Test
+    public void testProgressHistoryController05() throws Exception {
+        ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
+        newProgressHistory.setProgressHistoryId(1L);
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        newProgram.setCurrentProgressRate(0.00);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        Mockito.when(userRepository.save(any(User.class))).thenReturn(user);
+        userRepository.save(user);
+        newProgram.setProgramManager(user);
+        newProgram.setProgramId(1L);
+
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        Long milestoneId = Long.valueOf(1);
+        newMilestone.setProgramId(newProgram);
+        newMilestone.setMilestoneId(milestoneId);
+
+        newProgressHistory.setMilestoneId(newMilestone);
+        newProgressHistory.setProgramId(newProgram);
+
+        Mockito.when(progressHistoryRepository.save(any(ProgressHistory.class))).thenReturn(newProgressHistory);
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(milestoneId)).thenReturn(newMilestone);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+
+        Mockito.when(progressHistoryRepository.findProgressHistoryByProgressHistoryId(1L)).thenReturn(newProgressHistory);
+        newProgressHistory.setValue(new BigDecimal(2500));
+        String requestContent = objectMapper.writeValueAsString(newProgressHistory);
+        System.out.println(requestContent);
+        mockMvc.perform(MockMvcRequestBuilders.put("/ProgressHistory/editProgressHistory").contentType(APPLICATION_JSON).content(requestContent))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+        Mockito.verify(progressHistoryRepository, Mockito.atMostOnce()).save(newProgressHistory);
+    }
+
+    //edit progress history: failure due to invalid progress history ID
+    @Test
+    public void testProgressHistoryController06() throws Exception {
+        ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
+
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        newProgram.setCurrentProgressRate(0.00);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        Mockito.when(userRepository.save(any(User.class))).thenReturn(user);
+        userRepository.save(user);
+        newProgram.setProgramManager(user);
+        newProgram.setProgramId(1L);
+
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        Long milestoneId = Long.valueOf(1);
+        newMilestone.setProgramId(newProgram);
+        newMilestone.setMilestoneId(milestoneId);
+
+        newProgressHistory.setMilestoneId(newMilestone);
+        newProgressHistory.setProgramId(newProgram);
+
+        Mockito.when(progressHistoryRepository.save(any(ProgressHistory.class))).thenReturn(newProgressHistory);
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(milestoneId)).thenReturn(newMilestone);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+
+        Mockito.when(progressHistoryRepository.findProgressHistoryByProgressHistoryId(1L)).thenReturn(newProgressHistory);
+        newProgressHistory.setValue(new BigDecimal(2500));
+        newProgressHistory.setProgressHistoryId(2L);
+        String requestContent = objectMapper.writeValueAsString(newProgressHistory);
+        System.out.println(requestContent);
+        mockMvc.perform(MockMvcRequestBuilders.put("/ProgressHistory/editProgressHistory").contentType(APPLICATION_JSON).content(requestContent))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Progress History not found"));
+    }
+
+    //delete progress history: success
+    @Test
+    public void testProgressHistoryController07() throws Exception {
+        ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
+        newProgressHistory.setProgressHistoryId(1L);
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        newProgram.setCurrentProgressRate(0.00);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        Mockito.when(userRepository.save(any(User.class))).thenReturn(user);
+        userRepository.save(user);
+        newProgram.setProgramManager(user);
+        newProgram.setProgramId(1L);
+
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        Long milestoneId = Long.valueOf(1);
+        newMilestone.setProgramId(newProgram);
+        newMilestone.setMilestoneId(milestoneId);
+
+        newProgressHistory.setMilestoneId(newMilestone);
+        newProgressHistory.setProgramId(newProgram);
+
+        Mockito.when(progressHistoryRepository.save(any(ProgressHistory.class))).thenReturn(newProgressHistory);
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(milestoneId)).thenReturn(newMilestone);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(newProgram);
+        Mockito.when(progressHistoryRepository.findProgressHistoryByProgressHistoryId(1L)).thenReturn(newProgressHistory);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/ProgressHistory/deleteProgressHistory/{progressHistoryId}", 1L))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    //delete progress history: failure due to invalid progress history ID
+    @Test
+    public void testProgressHistoryController08() throws Exception {
+        ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
+        newProgressHistory.setProgressHistoryId(1L);
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        newProgram.setCurrentProgressRate(0.00);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        Mockito.when(userRepository.save(any(User.class))).thenReturn(user);
+        userRepository.save(user);
+        newProgram.setProgramManager(user);
+        newProgram.setProgramId(1L);
+
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+        Long milestoneId = Long.valueOf(1);
+        newMilestone.setProgramId(newProgram);
+        newMilestone.setMilestoneId(milestoneId);
+
+        newProgressHistory.setMilestoneId(newMilestone);
+        newProgressHistory.setProgramId(newProgram);
+
+        Mockito.when(progressHistoryRepository.save(any(ProgressHistory.class))).thenReturn(newProgressHistory);
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(milestoneId)).thenReturn(newMilestone);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(newProgram);
+        Mockito.when(progressHistoryRepository.findProgressHistoryByProgressHistoryId(1L)).thenReturn(newProgressHistory);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete("/ProgressHistory/deleteProgressHistory/{progressHistoryId}", 2L))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Progress History not found"));
     }
 }

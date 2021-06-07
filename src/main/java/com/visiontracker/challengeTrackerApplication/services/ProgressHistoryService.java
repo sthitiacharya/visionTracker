@@ -4,6 +4,7 @@ import com.visiontracker.challengeTrackerApplication.models.datamodels.CreatePro
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.ProgressHistory;
+import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgressHistoryRepository;
@@ -67,13 +68,47 @@ public class ProgressHistoryService {
         {
             throw new MilestoneNotFoundException("Invalid milestone ID");
         }
-        List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(milestoneId);
+        Milestone milestone = milestoneRepository.findMilestoneByMilestoneId(milestoneId);
+
+        if (!milestone.getProgressHistories().isEmpty())
+        {
+            milestone.getProgressHistories().clear();
+        }
+
+        List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(milestone);
         for (ProgressHistory p : progressHistories)
         {
             p.getProgramId().getMilestoneList().clear();
             p.getProgramId().getUserList().clear();
+
+           clearLists(p.getMilestoneId().getMilestoneCreatedBy());
         }
         return new ResponseEntity<>(progressHistories, HttpStatus.OK);
+    }
+
+    public ResponseEntity<Object> retrieveProgressHistory(Long progressHistoryId) throws ProgressHistoryNotFoundException
+    {
+        ProgressHistory progressHistory = progressHistoryRepository.findProgressHistoryByProgressHistoryId(progressHistoryId);
+
+        if (progressHistory == null)
+        {
+            throw new ProgressHistoryNotFoundException("Progress History not found");
+        }
+        if (!progressHistory.getMilestoneId().getProgressHistories().isEmpty())
+        {
+            progressHistory.getMilestoneId().getProgressHistories().clear();
+        }
+        if (!progressHistory.getProgramId().getMilestoneList().isEmpty())
+        {
+            progressHistory.getProgramId().getMilestoneList().clear();
+        }
+        if (!progressHistory.getProgramId().getUserList().isEmpty())
+        {
+            progressHistory.getProgramId().getUserList().clear();
+        }
+        clearLists(progressHistory.getMilestoneId().getMilestoneCreatedBy());
+
+        return new ResponseEntity<>(progressHistory, HttpStatus.OK);
     }
 
     public ResponseEntity<Object> editProgressHistoryRecord(ProgressHistory progressHistory) throws ProgramNotFoundException, MilestoneNotFoundException, ProgressHistoryNotFoundException {
@@ -104,6 +139,7 @@ public class ProgressHistoryService {
 
         progLog.getMilestoneId().getProgressHistories().add(progLog);
         milestoneRepository.save(progLog.getMilestoneId());
+        //progLog.getMilestoneId().getProgressHistories().clear();
         return new ResponseEntity<>(progressHistory.getProgressHistoryId(), HttpStatus.OK);
     }
 
@@ -144,5 +180,24 @@ public class ProgressHistoryService {
         Double programProgressRate = ((program.getCurrentProgressRate() / 100) + milestoneProgressRate/numMilestones) * 100;
         program.setCurrentProgressRate(programProgressRate);
         programRepository.save(program);
+    }
+
+    private void clearLists(User user) {
+        if (!user.getProgramsManaging().isEmpty())
+        {
+            user.getProgramsManaging().clear();
+        }
+        if (!user.getMilestoneList().isEmpty())
+        {
+            user.getMilestoneList().clear();
+        }
+        if (!user.getEnrolledPrograms().isEmpty())
+        {
+            user.getEnrolledPrograms().clear();
+        }
+        if (!user.getMilestonesCreated().isEmpty())
+        {
+            user.getMilestonesCreated().clear();
+        }
     }
 }

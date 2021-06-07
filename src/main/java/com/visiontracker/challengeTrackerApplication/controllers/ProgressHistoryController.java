@@ -53,6 +53,19 @@ public class ProgressHistoryController {
         }
     }
 
+    @GetMapping("/progressHistory/{progressHistoryId}")
+    public ResponseEntity<Object> retrieveProgressHistory(@PathVariable(name = "progressHistoryId") Long progressHistoryId)
+    {
+        try
+        {
+            return progressHistoryService.retrieveProgressHistory(progressHistoryId);
+        }
+        catch(ProgressHistoryNotFoundException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+    }
+
     @PutMapping("/editProgressHistory")
     public ResponseEntity<Object> editProgressHistory(@RequestBody ProgressHistory progressHistory)
     {
@@ -70,8 +83,8 @@ public class ProgressHistoryController {
         }
     }
 
-    @DeleteMapping("/deleteProgressHistory")
-    public ResponseEntity<Object> deleteProgressHistory(@RequestBody Long progressHistoryId)
+    @DeleteMapping("/deleteProgressHistory/{progressHistoryId}")
+    public ResponseEntity<Object> deleteProgressHistory(@PathVariable(name = "progressHistoryId") Long progressHistoryId)
     {
         try
         {
