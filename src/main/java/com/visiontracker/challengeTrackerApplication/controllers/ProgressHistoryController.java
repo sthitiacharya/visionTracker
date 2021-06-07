@@ -23,7 +23,6 @@ public class ProgressHistoryController {
     public ResponseEntity<Object> createProgressHistoryRecord(@RequestBody CreateProgHistoryReq progressHistory) {
         try
         {
-            System.out.println("In createProgressHistory Controller");
             return progressHistoryService.createProgressHistoryRecord(progressHistory);
         }
         catch (MilestoneNotFoundException | ProgramNotFoundException ex)

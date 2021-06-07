@@ -93,10 +93,6 @@ public class MilestoneService {
                 m.getProgramId().getUserList().clear();
             }
             clearLists(m.getMilestoneCreatedBy());
-            //m.getAssignedUser().getMilestonesCreated().clear();
-            //m.getAssignedUser().getProgramsManaging().clear();
-            //m.getAssignedUser().getEnrolledPrograms().clear();
-            //m.getAssignedUser().getMilestoneList().clear();
         }
 
         return new ResponseEntity<>(milestones, HttpStatus.OK);

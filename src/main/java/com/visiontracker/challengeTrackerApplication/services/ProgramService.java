@@ -62,10 +62,7 @@ public class ProgramService {
                 throw new CreateNewProgramException("Program Manager not found");
             }
 
-            //clearLists(programManager);
-
             createProgramReq.getProgram().setProgramManager(programManager);
-            //programManager.getProgramsManaging().add(createProgramReq.getProgram());
 
             Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getStartDate());
             createProgramReq.getProgram().setStartDate(date);
@@ -83,7 +80,6 @@ public class ProgramService {
             for (Long u : createProgramReq.getUserIds())
             {
                 User user = userRepository.findUserById(u);
-                //clearLists(user);
                 createProgramReq.getProgram().getUserList().add(user);
             }
 
@@ -101,15 +97,6 @@ public class ProgramService {
                 programMemberRepository.save(pm);
             }
 
-            //System.out.println(newProgram);
-            /*
-            for (User u : newProgram.getUserList())
-            {
-                clearLists(u);
-            }
-            newProgram.getUserList().clear();
-            newProgram.getMilestoneList().clear();
-             */
             return new ResponseEntity<>(newProgram.getProgramId(), HttpStatus.OK);
         }
         catch (ParseException ex) {
@@ -159,19 +146,6 @@ public class ProgramService {
             }
         }
 
-        /*
-        for (Program program : enrolledPrograms)
-        {
-            if (!program.getUserList().isEmpty())
-            {
-                program.getUserList().clear();
-            }
-            if (!program.getMilestoneList().isEmpty())
-            {
-                program.getMilestoneList().clear();
-            }
-        }
-         */
         System.out.println(programs);
         return new ResponseEntity<>(programs, HttpStatus.OK);
     }
@@ -251,10 +225,7 @@ public class ProgramService {
                 throw new UserNotFoundException("Program Manager not found");
             }
 
-            //clearLists(programManager);
-
             programToUpdate.setProgramManager(programManager);
-            //programManager.getProgramsManaging().add(programToUpdate);
 
             Date date = new SimpleDateFormat("dd-MM-yyyy").parse(updateProgramReq.getStartDate());
             programToUpdate.setStartDate(date);
@@ -270,9 +241,7 @@ public class ProgramService {
             for (Long u : updateProgramReq.getUserIds())
             {
                 User enrolledUser = userRepository.findUserById(u);
-                //clearLists(enrolledUser);
                 updateProgramReq.getProgram().getUserList().add(enrolledUser);
-                //user.getEnrolledPrograms().add(programToUpdate);
             }
             programToUpdate.setUserList(updateProgramReq.getProgram().getUserList());
 
@@ -289,17 +258,6 @@ public class ProgramService {
                     programMemberRepository.save(member);
                 }
             }
-            /*
-            for (User u : updatedProgram.getUserList())
-            {
-                u.getEnrolledPrograms().clear();
-                u.getMilestonesCreated().clear();
-                u.getProgramsManaging().clear();
-                u.getMilestoneList().clear();
-            }
-            updatedProgram.getUserList().clear();
-            updatedProgram.getMilestoneList().clear();
-             */
             return new ResponseEntity<>(updatedProgram.getProgramId(), HttpStatus.OK);
         }
         catch (ParseException ex)
