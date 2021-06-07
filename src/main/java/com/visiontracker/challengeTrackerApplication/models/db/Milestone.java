@@ -7,6 +7,7 @@ package com.visiontracker.challengeTrackerApplication.models.db;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -96,6 +97,7 @@ public class Milestone implements Serializable {
     private List<ProgressHistory> progressHistories;
 
     public Milestone() {
+        this.progressHistories = new ArrayList<>();
     }
 
     public Milestone(Long milestoneId) {
@@ -103,6 +105,7 @@ public class Milestone implements Serializable {
     }
 
     public Milestone(String title, String description, String milestoneType, Date creationDate, Date targetCompletionDate, BigDecimal initialValue, BigDecimal targetValue, String valueCategory, String valueType, int rewardValue) {
+        this();
         this.title = title;
         this.description = description;
         this.milestoneType = milestoneType;

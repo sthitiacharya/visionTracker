@@ -62,16 +62,18 @@ public class ProgramService {
                 throw new CreateNewProgramException("Program Manager not found");
             }
 
-            clearLists(programManager);
+            //clearLists(programManager);
 
             createProgramReq.getProgram().setProgramManager(programManager);
-            programManager.getProgramsManaging().add(createProgramReq.getProgram());
+            //programManager.getProgramsManaging().add(createProgramReq.getProgram());
 
             Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getStartDate());
             createProgramReq.getProgram().setStartDate(date);
 
             Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getTargetCompletionDate());
             createProgramReq.getProgram().setTargetCompletionDate(date2);
+
+            createProgramReq.getProgram().setCurrentProgressRate(0.00);
 
             if (!createProgramReq.getUserIds().contains(createProgramReq.getUserId()))
             {
@@ -86,12 +88,16 @@ public class ProgramService {
             }
 
             Program newProgram = programRepository.save(createProgramReq.getProgram());
-            for (Long u : createProgramReq.getUserIds())
+            programManager.getProgramsManaging().add(newProgram);
+            userRepository.save(programManager);
+
+            for (User u : newProgram.getUserList())
             {
-                User user = userRepository.findUserById(u);
-                user.getEnrolledPrograms().add(newProgram);
-                userRepository.save(user);
-                ProgramMember pm = new ProgramMember(user, newProgram);
+                u.getEnrolledPrograms().add(newProgram);
+                userRepository.save(u);
+                ProgramMember pm = new ProgramMember();
+                pm.setProgramId(newProgram);
+                pm.setUserId(u);
                 programMemberRepository.save(pm);
             }
 
@@ -222,10 +228,7 @@ public class ProgramService {
             Program programToUpdate = programRepository.findProgramById(updateProgramReq.getProgram().getProgramId());
 
             List<ProgramMember> programMembers = programMemberRepository.findProgramMembersByProgramId(programToUpdate);
-            for (ProgramMember pm : programMembers)
-            {
-                programMemberRepository.delete(pm);
-            }
+
             User user = userRepository.findUserById(updateProgramReq.getUserLoggedIn());
             if (!programToUpdate.getProgramManager().equals(user))
             {
@@ -248,10 +251,10 @@ public class ProgramService {
                 throw new UserNotFoundException("Program Manager not found");
             }
 
-            clearLists(programManager);
+            //clearLists(programManager);
 
             programToUpdate.setProgramManager(programManager);
-            programManager.getProgramsManaging().add(programToUpdate);
+            //programManager.getProgramsManaging().add(programToUpdate);
 
             Date date = new SimpleDateFormat("dd-MM-yyyy").parse(updateProgramReq.getStartDate());
             programToUpdate.setStartDate(date);
@@ -267,23 +270,24 @@ public class ProgramService {
             for (Long u : updateProgramReq.getUserIds())
             {
                 User enrolledUser = userRepository.findUserById(u);
-                clearLists(enrolledUser);
-                programToUpdate.getUserList().add(enrolledUser);
-
+                //clearLists(enrolledUser);
+                updateProgramReq.getProgram().getUserList().add(enrolledUser);
                 //user.getEnrolledPrograms().add(programToUpdate);
             }
+            programToUpdate.setUserList(updateProgramReq.getProgram().getUserList());
 
             Program updatedProgram = programRepository.save(programToUpdate);
             System.out.println(updatedProgram);
-
-            for (Long u : updateProgramReq.getUserIds())
+            programManager.getProgramsManaging().add(updatedProgram);
+            for (User u : updatedProgram.getUserList())
             {
-                User user1 = userRepository.findUserById(u);
-                user1.getEnrolledPrograms().add(updatedProgram);
-                userRepository.save(user);
-                ProgramMember pm = new ProgramMember(user, updatedProgram);
-                programMemberRepository.save(pm);
-
+                u.getEnrolledPrograms().add(updatedProgram);
+                userRepository.save(u);
+                for (ProgramMember member : programMembers)
+                {
+                    member.setUserId(u);
+                    programMemberRepository.save(member);
+                }
             }
             /*
             for (User u : updatedProgram.getUserList())
@@ -313,11 +317,18 @@ public class ProgramService {
             throw new ProgramNotFoundException("Program not found");
         }
 
-        List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(programToDelete);
+        List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(programId);
+
+        List<ProgramMember> programMembers = programMemberRepository.findProgramMembersByProgramId(programToDelete);
 
         for (Milestone m : milestones)
         {
             milestoneRepository.delete(m);
+        }
+
+        for (ProgramMember pm : programMembers)
+        {
+            programMemberRepository.delete(pm);
         }
 
         programRepository.delete(programToDelete);

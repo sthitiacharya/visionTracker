@@ -188,4 +188,49 @@ public class ProgramControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
         .andExpect(MockMvcResultMatchers.content().string("Program can only be updated by the program manager"));
     }
+
+    //deletion of program: success
+    @Test
+    public void testProgramController08() throws Exception
+    {
+        String stringDate = "12-05-2021";
+        String stringDate2 = "17-05-2021";
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        newProgram.setProgramManager(user);
+        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        List<Long> users = new ArrayList<>();
+        users.add(1L);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        newProgram.setProgramId(1L);
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(newProgram);
+        //String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/Program/deleteProgram/{programId}", 1L))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    //deletion of program: failure
+    @Test
+    public void testProgramController09() throws Exception
+    {
+        String stringDate = "12-05-2021";
+        String stringDate2 = "17-05-2021";
+        Program newProgram = new Program("Sample Title", "Sample Description", null, null);
+        User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
+        newProgram.setProgramManager(user);
+        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
+        List<Long> users = new ArrayList<>();
+        users.add(1L);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        newProgram.setProgramId(1L);
+        Mockito.when(programRepository.findProgramById(1L)).thenReturn(newProgram);
+        //String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/Program/deleteProgram/{programId}", 2L))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Program not found"));
+    }
 }

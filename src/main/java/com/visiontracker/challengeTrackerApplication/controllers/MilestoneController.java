@@ -45,9 +45,9 @@ public class MilestoneController {
         {
             return milestoneService.retrieveProgramMilestones(programId);
         }
-        catch (ProgramNotFoundException ex)
+        catch (Exception ex)
         {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }
 

@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.controllers;
 
+import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgHistoryReq;
 import com.visiontracker.challengeTrackerApplication.models.db.ProgressHistory;
 import com.visiontracker.challengeTrackerApplication.services.ProgressHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,9 +20,10 @@ public class ProgressHistoryController {
     private ProgressHistoryService progressHistoryService;
 
     @PostMapping(path = "/logProgress")
-    public ResponseEntity<Object> createProgressHistoryRecord(@RequestBody ProgressHistory progressHistory) {
+    public ResponseEntity<Object> createProgressHistoryRecord(@RequestBody CreateProgHistoryReq progressHistory) {
         try
         {
+            System.out.println("In createProgressHistory Controller");
             return progressHistoryService.createProgressHistoryRecord(progressHistory);
         }
         catch (MilestoneNotFoundException | ProgramNotFoundException ex)
@@ -30,6 +32,7 @@ public class ProgressHistoryController {
         }
         catch (Exception ex)
         {
+            ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }

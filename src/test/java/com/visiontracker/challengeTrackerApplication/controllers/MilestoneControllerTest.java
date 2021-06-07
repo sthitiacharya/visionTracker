@@ -154,4 +154,36 @@ public class MilestoneControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.content().string("Milestones need to be associated with a program"));
     }
+
+    //deleting milestone: success
+    @Test
+    public void testMilestoneController07() throws Exception {
+        String stringDate = "12-05-2021";
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+
+        User u = userRepository.findUserById(Long.valueOf(1));
+        newMilestone.setMilestoneCreatedBy(u);
+        Long programId = Long.valueOf(1);
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(1L)).thenReturn(newMilestone);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/Milestone/deleteMilestone/{milestoneId}", 1L))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+    }
+
+    //deleting milestone: failure due to invalid milestone ID
+    @Test
+    public void testMilestoneController08() throws Exception {
+        String stringDate = "12-05-2021";
+        Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
+                new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
+
+        User u = userRepository.findUserById(Long.valueOf(1));
+        newMilestone.setMilestoneCreatedBy(u);
+        Long programId = Long.valueOf(1);
+        Mockito.when(milestoneRepository.findMilestoneByMilestoneId(1L)).thenReturn(newMilestone);
+        mockMvc.perform(MockMvcRequestBuilders.delete("/Milestone/deleteMilestone/{milestoneId}", 2L))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().string("Milestone not found"));
+    }
+
 }

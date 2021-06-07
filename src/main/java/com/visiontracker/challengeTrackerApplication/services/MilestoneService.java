@@ -4,6 +4,7 @@ import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateMil
 import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateMilestoneReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
+import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,38 +72,34 @@ public class MilestoneService {
 
     }
 
-    public ResponseEntity<Object> retrieveProgramMilestones(Long programId) throws ProgramNotFoundException
+    public ResponseEntity<Object> retrieveProgramMilestones(Long programId)
     {
-        try
-        {
-            Program p = programRepository.findProgramById(programId);
-            if (p == null)
-            {
-                throw new ProgramNotFoundException("Program not found");
-            }
-            List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(p);
+        List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(programId);
+        System.out.println("Program Milestones: " + milestones);
 
-            for (Milestone m : milestones)
+        for (Milestone m : milestones)
+        {
+            if (!m.getProgressHistories().isEmpty())
+            {
+                m.getProgressHistories().clear();
+            }
+
+            if (!m.getProgramId().getMilestoneList().isEmpty())
             {
                 m.getProgramId().getMilestoneList().clear();
-                m.getProgramId().getUserList().clear();
-                m.getMilestoneCreatedBy().getMilestoneList().clear();
-                m.getMilestoneCreatedBy().getMilestonesCreated().clear();
-                m.getMilestoneCreatedBy().getProgramsManaging().clear();
-                m.getMilestoneCreatedBy().getEnrolledPrograms().clear();
-                //m.getAssignedUser().getMilestonesCreated().clear();
-                //m.getAssignedUser().getProgramsManaging().clear();
-                //m.getAssignedUser().getEnrolledPrograms().clear();
-                //m.getAssignedUser().getMilestoneList().clear();
             }
-            p.getUserList().clear();
-            p.getMilestoneList().clear();
-            return new ResponseEntity<>(milestones, HttpStatus.OK);
+            if (!m.getProgramId().getUserList().isEmpty())
+            {
+                m.getProgramId().getUserList().clear();
+            }
+            clearLists(m.getMilestoneCreatedBy());
+            //m.getAssignedUser().getMilestonesCreated().clear();
+            //m.getAssignedUser().getProgramsManaging().clear();
+            //m.getAssignedUser().getEnrolledPrograms().clear();
+            //m.getAssignedUser().getMilestoneList().clear();
         }
-        catch (Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Server Error");
-        }
+
+        return new ResponseEntity<>(milestones, HttpStatus.OK);
     }
 
     public ResponseEntity<Object> retrieveMilestone(Long milestoneId) throws MilestoneNotFoundException
@@ -116,6 +113,11 @@ public class MilestoneService {
                 throw new MilestoneNotFoundException("Milestone not found");
             }
 
+            if (!milestone.getProgressHistories().isEmpty())
+            {
+                milestone.getProgressHistories().clear();
+            }
+
             if (milestone.getProgramId() != null)
             {
                 milestone.getProgramId().getMilestoneList().clear();
@@ -124,10 +126,7 @@ public class MilestoneService {
 
             if (milestone.getMilestoneCreatedBy() != null)
             {
-                milestone.getMilestoneCreatedBy().getMilestoneList().clear();
-                milestone.getMilestoneCreatedBy().getMilestonesCreated().clear();
-                milestone.getMilestoneCreatedBy().getProgramsManaging().clear();
-                milestone.getMilestoneCreatedBy().getEnrolledPrograms().clear();
+                clearLists(milestone.getMilestoneCreatedBy());
             }
 
             return new ResponseEntity<>(milestone, HttpStatus.OK);
@@ -203,5 +202,24 @@ public class MilestoneService {
         milestoneRepository.delete(milestoneToDelete);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private void clearLists(User user) {
+        if (!user.getProgramsManaging().isEmpty())
+        {
+            user.getProgramsManaging().clear();
+        }
+        if (!user.getMilestoneList().isEmpty())
+        {
+            user.getMilestoneList().clear();
+        }
+        if (!user.getEnrolledPrograms().isEmpty())
+        {
+            user.getEnrolledPrograms().clear();
+        }
+        if (!user.getMilestonesCreated().isEmpty())
+        {
+            user.getMilestonesCreated().clear();
+        }
     }
 }

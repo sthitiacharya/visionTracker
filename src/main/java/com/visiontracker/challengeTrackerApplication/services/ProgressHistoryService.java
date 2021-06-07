@@ -1,5 +1,8 @@
 package com.visiontracker.challengeTrackerApplication.services;
 
+import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgHistoryReq;
+import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
+import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.ProgressHistory;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
@@ -13,6 +16,7 @@ import util.exception.ProgramNotFoundException;
 import util.exception.ProgressHistoryNotFoundException;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 
@@ -27,26 +31,35 @@ public class ProgressHistoryService {
     @Autowired
     private ProgramRepository programRepository;
 
-    public ResponseEntity<Object> createProgressHistoryRecord(ProgressHistory progressHistory) throws ProgramNotFoundException, MilestoneNotFoundException {
-        if (progressHistory.getProgramId() == null)
-        {
-            throw new ProgramNotFoundException("Program not found");
-        }
-        progressHistory.getProgramId().getUserList().clear();
-        progressHistory.getProgramId().getMilestoneList().clear();
+    public ResponseEntity<Object> createProgressHistoryRecord(CreateProgHistoryReq progressHistory) throws ProgramNotFoundException, MilestoneNotFoundException {
 
-        if (progressHistory.getMilestoneId() == null)
-        {
+        System.out.println("In ProgramHistory service");
+
+        if (progressHistory.getMilestoneId() == null) {
             throw new MilestoneNotFoundException("Milestone not found");
         }
-        progressHistory.setDateOfRecord(new Date());
-        ProgressHistory newProgLog = progressHistoryRepository.save(progressHistory);
-        Double milestoneProgressRate = (progressHistory.getValue().divide(progressHistory.getMilestoneId().getTargetValue())).doubleValue();
-        int numMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId()).size();
-        Double programProgressRate = newProgLog.getProgramId().getCurrentProgressRate() + (milestoneProgressRate/numMilestones);
-        newProgLog.getProgramId().setCurrentProgressRate(programProgressRate);
-        programRepository.save(newProgLog.getProgramId());
-        return new ResponseEntity<>(progressHistory.getProgressHistoryId(), HttpStatus.OK);
+
+        Milestone milestone = milestoneRepository.findMilestoneByMilestoneId(progressHistory.getMilestoneId());
+
+        System.out.println("Milestone: " + milestone);
+        System.out.println("Program: " + milestone.getProgramId());
+        if (!milestone.getProgressHistories().isEmpty())
+        {
+            milestone.getProgressHistories().clear();
+        }
+
+        progressHistory.getProgressHistory().setMilestoneId(milestone);
+        progressHistory.getProgressHistory().setDateOfRecord(new Date());
+        progressHistory.getProgressHistory().setProgramId(milestone.getProgramId());
+        ProgressHistory newProgLog = progressHistoryRepository.save(progressHistory.getProgressHistory());
+
+        System.out.println("Prog Log: " + newProgLog);
+
+        calcProgressRate(milestone, milestone.getProgramId(), newProgLog);
+
+        milestone.getProgressHistories().add(newProgLog);
+        milestoneRepository.save(milestone);
+        return new ResponseEntity<>(newProgLog.getProgressHistoryId(), HttpStatus.OK);
     }
 
     public ResponseEntity<Object> retrieveProgressHistoriesByMilestone(Long milestoneId) throws MilestoneNotFoundException {
@@ -86,11 +99,11 @@ public class ProgressHistoryService {
         progressHistoryToUpdate.setValue(progressHistory.getValue());
 
         ProgressHistory progLog = progressHistoryRepository.save(progressHistoryToUpdate);
-        Double milestoneProgressRate = (progressHistory.getValue().divide(progressHistory.getMilestoneId().getTargetValue())).doubleValue();
-        int numMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId()).size();
-        Double programProgressRate = progLog.getProgramId().getCurrentProgressRate() + (milestoneProgressRate/numMilestones);
-        progLog.getProgramId().setCurrentProgressRate(programProgressRate);
-        programRepository.save(progLog.getProgramId());
+        System.out.println("Prog Log: " + progLog + " Milestone: " + progLog.getMilestoneId() + " Program: " + progLog.getProgramId());
+        calcProgressRate(progLog.getMilestoneId(), progLog.getProgramId(), progLog);
+
+        progLog.getMilestoneId().getProgressHistories().add(progLog);
+        milestoneRepository.save(progLog.getMilestoneId());
         return new ResponseEntity<>(progressHistory.getProgressHistoryId(), HttpStatus.OK);
     }
 
@@ -101,13 +114,35 @@ public class ProgressHistoryService {
         {
             throw new ProgressHistoryNotFoundException("Progress History not found");
         }
-        if (progressHistory.getProgramId() != null)
+        Program program = progressHistory.getProgramId();
+        int initialNumMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId().getProgramId()).size();
+        if (program != null)
         {
-            progressHistory.getProgramId().getUserList().clear();
-            progressHistory.getProgramId().getMilestoneList().clear();
+            program.getUserList().clear();
+            program.getMilestoneList().clear();
         }
         progressHistoryRepository.delete(progressHistory);
 
+        int numMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId().getProgramId()).size();
+        Double programProgressRate = (program.getCurrentProgressRate()/initialNumMilestones)*numMilestones;
+        program.setCurrentProgressRate(programProgressRate);
+        programRepository.save(program);
+
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    private void calcProgressRate(Milestone milestone, Program program, ProgressHistory progressHistory)
+    {
+        System.out.println(milestone);
+        System.out.println(program);
+        System.out.println(progressHistory);
+        BigDecimal milestoneDifference = milestone.getTargetValue().subtract(milestone.getInitialValue());
+        BigDecimal currentDifference = milestone.getTargetValue().subtract(progressHistory.getValue());
+        BigDecimal change = milestoneDifference.subtract(currentDifference);
+        Double milestoneProgressRate = (change.divide(milestoneDifference, 2, RoundingMode.CEILING)).doubleValue();
+        int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
+        Double programProgressRate = ((program.getCurrentProgressRate() / 100) + milestoneProgressRate/numMilestones) * 100;
+        program.setCurrentProgressRate(programProgressRate);
+        programRepository.save(program);
     }
 }
