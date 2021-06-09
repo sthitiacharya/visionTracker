@@ -100,6 +100,7 @@ public class MilestoneService {
                 m.getProgramId().getUserList().clear();
             }
             clearLists(m.getMilestoneCreatedBy());
+            clearLists(m.getProgramId().getProgramManager());
         }
 
         return new ResponseEntity<>(milestones, HttpStatus.OK);
@@ -123,6 +124,7 @@ public class MilestoneService {
 
             if (milestone.getProgramId() != null)
             {
+                clearLists(milestone.getProgramId().getProgramManager());
                 milestone.getProgramId().getMilestoneList().clear();
                 milestone.getProgramId().getUserList().clear();
             }

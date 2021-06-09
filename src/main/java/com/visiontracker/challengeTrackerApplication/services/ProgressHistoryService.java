@@ -8,6 +8,7 @@ import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgressHistoryRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import util.exception.ProgressHistoryNotFoundException;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -31,6 +33,9 @@ public class ProgressHistoryService {
 
     @Autowired
     private ProgramRepository programRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public ResponseEntity<Object> createProgressHistoryRecord(CreateProgHistoryReq progressHistory) throws ProgramNotFoundException, MilestoneNotFoundException {
 
@@ -80,8 +85,8 @@ public class ProgressHistoryService {
         {
             p.getProgramId().getMilestoneList().clear();
             p.getProgramId().getUserList().clear();
-
-           clearLists(p.getMilestoneId().getMilestoneCreatedBy());
+            clearLists(p.getProgramId().getProgramManager());
+            clearLists(p.getMilestoneId().getMilestoneCreatedBy());
         }
         return new ResponseEntity<>(progressHistories, HttpStatus.OK);
     }
@@ -106,6 +111,7 @@ public class ProgressHistoryService {
         {
             progressHistory.getProgramId().getUserList().clear();
         }
+        clearLists(progressHistory.getProgramId().getProgramManager());
         clearLists(progressHistory.getMilestoneId().getMilestoneCreatedBy());
 
         return new ResponseEntity<>(progressHistory, HttpStatus.OK);
@@ -176,6 +182,24 @@ public class ProgressHistoryService {
         BigDecimal currentDifference = milestone.getTargetValue().subtract(progressHistory.getValue());
         BigDecimal change = milestoneDifference.subtract(currentDifference);
         Double milestoneProgressRate = (change.divide(milestoneDifference, 2, RoundingMode.CEILING)).doubleValue();
+        SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
+        if (milestoneProgressRate.equals(1) && f.format(progressHistory.getDateOfRecord()).compareTo(f.format(milestone.getTargetCompletionDate())) <= 0)
+        {
+            if (milestone.getMilestoneType().equals("Individual") && milestone.getAssignedUser() != null)
+            {
+                milestone.getAssignedUser().setRewardPoints(milestone.getRewardValue());
+                userRepository.save(milestone.getAssignedUser());
+            }
+            if (milestone.getMilestoneType().equals("Program"))
+            {
+                List<User> users = userRepository.findUsersByProgramId(program);
+                for (User u : users)
+                {
+                    u.setRewardPoints(milestone.getRewardValue());
+                    userRepository.save(u);
+                }
+            }
+        }
         int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
         Double programProgressRate = ((program.getCurrentProgressRate() / 100) + milestoneProgressRate/numMilestones) * 100;
         program.setCurrentProgressRate(programProgressRate);

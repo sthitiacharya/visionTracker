@@ -21,6 +21,6 @@ public interface ProgramRepository extends CrudRepository<Program, Long> {
     @Query("select p from Program p")
     List<Program> findAll();
 
-    @Query("select pm.programId from ProgramMember pm where pm.userId = :userId")
+    @Query("select distinct pm.programId from ProgramMember pm where pm.userId = :userId")
     List<Program> findProgramsByUserId(@Param("userId") User userId);
 }

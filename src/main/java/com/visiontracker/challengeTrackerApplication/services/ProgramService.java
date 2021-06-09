@@ -62,12 +62,6 @@ public class ProgramService {
 
         createProgramReq.getProgram().setProgramManager(programManager);
 
-        //Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getStartDate());
-        //createProgramReq.getProgram().setStartDate(date);
-
-        //Date date2 = new SimpleDateFormat("dd-MM-yyyy").parse(createProgramReq.getTargetCompletionDate());
-        //createProgramReq.getProgram().setTargetCompletionDate(date2);
-
         createProgramReq.getProgram().setCurrentProgressRate(0.00);
 
         if (!createProgramReq.getUserIds().contains(createProgramReq.getUserId()))
@@ -137,6 +131,7 @@ public class ProgramService {
             {
                 p.getMilestoneList().clear();
             }
+            clearLists(p.getProgramManager());
         }
 
         System.out.println(programs);
@@ -192,12 +187,6 @@ public class ProgramService {
 
         Program programToUpdate = programRepository.findProgramById(updateProgramReq.getProgram().getProgramId());
 
-        List<ProgramMember> programMembers = programMemberRepository.findProgramMembersByProgramId(programToUpdate);
-        for (ProgramMember pm : programMembers)
-        {
-            programMemberRepository.delete(pm);
-        }
-
         User user = userRepository.findUserById(updateProgramReq.getUserLoggedIn());
         if (!programToUpdate.getProgramManager().equals(user))
         {
@@ -235,6 +224,12 @@ public class ProgramService {
             updateProgramReq.getProgram().getUserList().add(enrolledUser);
         }
         programToUpdate.setUserList(updateProgramReq.getProgram().getUserList());
+
+        List<ProgramMember> programMembers = programMemberRepository.findProgramMembersByProgramId(programToUpdate);
+        for (ProgramMember pm : programMembers)
+        {
+            programMemberRepository.delete(pm);
+        }
 
         Program updatedProgram = programRepository.save(programToUpdate);
         System.out.println(updatedProgram);

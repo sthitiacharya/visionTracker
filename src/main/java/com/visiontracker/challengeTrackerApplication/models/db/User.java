@@ -51,6 +51,10 @@ public class User implements Serializable {
     //@Size(min = 1, max = 255)
     @Column(name = "mailingAddress")
     private String mailingAddress;
+
+    @Column(name = "rewardPoints")
+    private int rewardPoints;
+
     @ManyToMany(mappedBy = "userList")
     private List<Program> enrolledPrograms;
     @OneToMany(mappedBy = "assignedUser")
@@ -175,5 +179,12 @@ public class User implements Serializable {
     public String toString() {
         return "entity.User[ userId=" + userId + " ]";
     }
-    
+
+    public int getRewardPoints() {
+        return rewardPoints;
+    }
+
+    public void setRewardPoints(int rewardPoints) {
+        this.rewardPoints = rewardPoints;
+    }
 }
