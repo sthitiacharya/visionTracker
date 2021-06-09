@@ -40,7 +40,7 @@ public class MilestoneControllerTest {
 
     //creation of new milestone: success
     @Test
-    public void testMilestoneController01() throws Exception {
+    public void createMilestoneSuccess() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -60,7 +60,7 @@ public class MilestoneControllerTest {
 
     //creation of new milestone: fail due to duplicate entry
     @Test
-    public void testMilestoneController02() throws Exception {
+    public void createMilestoneFail01() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -81,7 +81,7 @@ public class MilestoneControllerTest {
 
     //creation of new milestone: failure due to null program ID
     @Test
-    public void testMilestoneController03() throws Exception {
+    public void createMilestoneFail02() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -99,7 +99,7 @@ public class MilestoneControllerTest {
 
     //retrieval of program milestones
     @Test
-    public void testMilestoneController04() throws Exception {
+    public void retrieveProgramMilestoneSuccess() throws Exception {
         Long programId = Long.valueOf(1);
         String requestContent = objectMapper.writeValueAsString(programId);
         System.out.println(requestContent);
@@ -109,7 +109,7 @@ public class MilestoneControllerTest {
 
     //editing milestone: success
     @Test
-    public void testMilestoneController05() throws Exception {
+    public void editMilestoneSuccess() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -133,7 +133,7 @@ public class MilestoneControllerTest {
 
     //editing milestone: failure due to invalid program association
     @Test
-    public void testMilestoneController06() throws Exception {
+    public void editMilestoneFailure() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -157,7 +157,7 @@ public class MilestoneControllerTest {
 
     //deleting milestone: success
     @Test
-    public void testMilestoneController07() throws Exception {
+    public void deleteMilestoneSuccess() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);
@@ -172,7 +172,7 @@ public class MilestoneControllerTest {
 
     //deleting milestone: failure due to invalid milestone ID
     @Test
-    public void testMilestoneController08() throws Exception {
+    public void deleteMilestoneFailure() throws Exception {
         String stringDate = "12-05-2021";
         Milestone newMilestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);

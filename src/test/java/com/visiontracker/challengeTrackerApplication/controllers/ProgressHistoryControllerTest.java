@@ -51,7 +51,7 @@ public class ProgressHistoryControllerTest {
 
     //creation of new progress history: success
     @Test
-    public void testProgressHistoryController01() throws Exception {
+    public void createProgressHistorySuccess() throws Exception {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
 
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
@@ -82,7 +82,7 @@ public class ProgressHistoryControllerTest {
 
     //creation of new progress history: failure due to invalid milestone
     @Test
-    public void testProgressHistoryController02() throws Exception {
+    public void createProgressHistoryFailure() throws Exception {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
 
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
@@ -113,7 +113,7 @@ public class ProgressHistoryControllerTest {
 
     //retrieval of milestone progress histories
     @Test
-    public void testProgressHistoryController03() throws Exception
+    public void retrieveMilestoneProgressHistoriesSuccess() throws Exception
     {
         Milestone milestone = new Milestone("Sample Title", "Sample Description", "Individual", new Date(), null,
                 new BigDecimal(1000), new BigDecimal(5000), "Health", "No. of steps / day", 20);;
@@ -126,7 +126,7 @@ public class ProgressHistoryControllerTest {
 
     //retrieval of individual progress history
     @Test
-    public void testProgressHistoryController04() throws Exception
+    public void retrieveIndividualProgressHistorySuccess() throws Exception
     {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
         newProgressHistory.setProgressHistoryId(1L);
@@ -154,7 +154,7 @@ public class ProgressHistoryControllerTest {
 
     //edit progress history: success
     @Test
-    public void testProgressHistoryController05() throws Exception {
+    public void editProgressHistorySuccess() throws Exception {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
         newProgressHistory.setProgressHistoryId(1L);
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
@@ -189,7 +189,7 @@ public class ProgressHistoryControllerTest {
 
     //edit progress history: failure due to invalid progress history ID
     @Test
-    public void testProgressHistoryController06() throws Exception {
+    public void editProgressHistoryFailure() throws Exception {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
 
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
@@ -225,7 +225,7 @@ public class ProgressHistoryControllerTest {
 
     //delete progress history: success
     @Test
-    public void testProgressHistoryController07() throws Exception {
+    public void deleteProgressHistorySuccess() throws Exception {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
         newProgressHistory.setProgressHistoryId(1L);
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
@@ -257,7 +257,7 @@ public class ProgressHistoryControllerTest {
 
     //delete progress history: failure due to invalid progress history ID
     @Test
-    public void testProgressHistoryController08() throws Exception {
+    public void deleteProgressHistoryFailure() throws Exception {
         ProgressHistory newProgressHistory = new ProgressHistory(new Date(), new BigDecimal(2000));
         newProgressHistory.setProgressHistoryId(1L);
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);

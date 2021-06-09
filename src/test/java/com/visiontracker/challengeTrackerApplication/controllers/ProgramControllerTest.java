@@ -44,7 +44,7 @@ public class ProgramControllerTest {
 
     //creation of new program: success
     @Test
-    public void testProgramController01() throws Exception
+    public void createProgramSuccess() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -65,7 +65,7 @@ public class ProgramControllerTest {
 
     //creation of new program: fail due to duplicate entry of title
     @Test
-    public void testProgramController02() throws Exception
+    public void createProgramFailure01() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -88,7 +88,7 @@ public class ProgramControllerTest {
 
     //creation of new program: fail due to null program manager
     @Test
-    public void testProgramController03() throws Exception
+    public void createProgramFailure02() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -107,7 +107,7 @@ public class ProgramControllerTest {
 
     //retrieval of enrolled programs
     @Test
-    public void testProgramController04() throws Exception
+    public void retrieveEnrolledProgramsSuccess() throws Exception
     {
         User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
         Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
@@ -119,7 +119,7 @@ public class ProgramControllerTest {
 
     //retrieval of individual program
     @Test
-    public void testProgramController05() throws Exception
+    public void retrieveIndividualProgramSuccess() throws Exception
     {
         Program p = new Program();
         p.setProgramId(1L);
@@ -133,7 +133,7 @@ public class ProgramControllerTest {
 
     //edit program: success
     @Test
-    public void testProgramController06() throws Exception
+    public void editProgramSuccess() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -163,7 +163,7 @@ public class ProgramControllerTest {
 
     //edit program: failure as user is not program manager
     @Test
-    public void testProgramController07() throws Exception
+    public void editProgramFailure() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -191,7 +191,7 @@ public class ProgramControllerTest {
 
     //deletion of program: success
     @Test
-    public void testProgramController08() throws Exception
+    public void deleteProgramSuccess() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";
@@ -213,7 +213,7 @@ public class ProgramControllerTest {
 
     //deletion of program: failure
     @Test
-    public void testProgramController09() throws Exception
+    public void deleteProgramFailure() throws Exception
     {
         String stringDate = "12-05-2021";
         String stringDate2 = "17-05-2021";

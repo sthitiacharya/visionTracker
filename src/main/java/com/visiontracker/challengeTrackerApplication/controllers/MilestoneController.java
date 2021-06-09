@@ -99,4 +99,18 @@ public class MilestoneController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }
+
+    @GetMapping("/getReminders")
+    public ResponseEntity<Object> getReminders(@RequestParam(name = "userId") Long userId)
+    {
+        try
+        {
+            return milestoneService.getReminders(userId);
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
+    }
 }

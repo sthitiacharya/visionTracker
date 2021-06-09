@@ -7,6 +7,7 @@ import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,9 @@ import util.exception.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +29,9 @@ public class MilestoneService {
 
     @Autowired
     private ProgramRepository programRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     public ResponseEntity<Object> createMilestone(CreateMilestoneReq createMilestoneReq) throws CreateNewMilestoneException, MilestoneTitleExistException, ProgramNotFoundException, ParseException
     {
@@ -44,8 +51,8 @@ public class MilestoneService {
 
         Date creationDate = new Date();
         createMilestoneReq.getMilestone().setCreationDate(creationDate);
-        Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createMilestoneReq.getTargetCompletionDate());
-        createMilestoneReq.getMilestone().setTargetCompletionDate(date);
+        //Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createMilestoneReq.getTargetCompletionDate());
+        //createMilestoneReq.getMilestone().setTargetCompletionDate(date);
 
         Program program = programRepository.findProgramById(createMilestoneReq.getProgramId());
 
@@ -175,9 +182,9 @@ public class MilestoneService {
         milestoneToUpdate.setRewardValue(updateMilestoneReq.getMilestone().getRewardValue());
         milestoneToUpdate.setValueCategory(updateMilestoneReq.getMilestone().getValueCategory());
         milestoneToUpdate.setValueType(updateMilestoneReq.getMilestone().getValueType());
-
-        Date date = new SimpleDateFormat("dd-MM-yyyy").parse(updateMilestoneReq.getTargetCompletionDate());
-        milestoneToUpdate.setTargetCompletionDate(date);
+        milestoneToUpdate.setTargetCompletionDate(updateMilestoneReq.getMilestone().getTargetCompletionDate());
+        milestoneToUpdate.setReminderStartDate(updateMilestoneReq.getMilestone().getReminderStartDate());
+        milestoneToUpdate.setReminderInterval(updateMilestoneReq.getMilestone().getReminderInterval());
 
         Milestone updatedMilestone = milestoneRepository.save(milestoneToUpdate);
         program.getMilestoneList().add(updatedMilestone);
@@ -198,6 +205,101 @@ public class MilestoneService {
         milestoneRepository.delete(milestoneToDelete);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    public ResponseEntity<Object> getReminders(Long userId) {
+        User user = userRepository.findUserById(userId);
+        clearLists(user);
+        List<Program> programs = programRepository.findProgramsByUserId(user);
+        List<Milestone> milestones = new ArrayList<>();
+        List<String> reminders = new ArrayList<>();
+        for (Program p : programs)
+        {
+            List<Milestone> progMilestones = milestoneRepository.findMilestonesByProgramId(p.getProgramId());
+            milestones.addAll(progMilestones);
+            if (!p.getMilestoneList().isEmpty())
+            {
+                p.getMilestoneList().clear();
+            }
+            if (!p.getUserList().isEmpty())
+            {
+                p.getUserList().clear();
+            }
+        }
+
+        for (Milestone m : milestones)
+        {
+            if (m.getReminderStartDate() == null)
+            {
+                break;
+            }
+            SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
+            if (f.format(m.getReminderStartDate()).equals(f.format(new Date())))
+            {
+                if (f.format(m.getReminderStartDate()).compareTo(f.format(m.getTargetCompletionDate())) == 0)
+                {
+                    String reminder = "Reminder: " + m.getTitle() + " is due today";
+                    reminders.add(reminder);
+                }
+
+                String reminder = "Reminder to complete " + m.getTitle() + " by: " + m.getTargetCompletionDate();
+                reminders.add(reminder);
+
+                if (m.getReminderInterval().equals("Daily"))
+                {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(m.getReminderStartDate());
+                    c.add(Calendar.DAY_OF_MONTH, 1);
+                    System.out.println(c.getTime());
+                    m.setReminderStartDate(c.getTime());
+                }
+                if (m.getReminderInterval().equals("Every 3 days"))
+                {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(m.getReminderStartDate());
+                    c.add(Calendar.DAY_OF_MONTH, 3);
+                    System.out.println(c.getTime());
+                    m.setReminderStartDate(c.getTime());
+                }
+                if (m.getReminderInterval().equals("Every 5 days"))
+                {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(m.getReminderStartDate());
+                    c.add(Calendar.DAY_OF_MONTH, 5);
+                    System.out.println(c.getTime());
+                    m.setReminderStartDate(c.getTime());
+                }
+                if (m.getReminderInterval().equals("Weekly"))
+                {
+                    Calendar c = Calendar.getInstance();
+                    c.setTime(m.getReminderStartDate());
+                    c.add(Calendar.DAY_OF_MONTH, 7);
+                    System.out.println(c.getTime());
+                    m.setReminderStartDate(c.getTime());
+                }
+                milestoneRepository.save(m);
+            }
+            if (f.format(m.getReminderStartDate()).compareTo(f.format(m.getTargetCompletionDate())) > 0)
+            {
+                m.setReminderStartDate(m.getTargetCompletionDate());
+                milestoneRepository.save(m);
+            }
+            if (!m.getProgressHistories().isEmpty())
+            {
+                m.getProgressHistories().clear();
+            }
+            if (!m.getProgramId().getMilestoneList().isEmpty())
+            {
+                m.getProgramId().getMilestoneList().clear();
+            }
+            if (!m.getProgramId().getUserList().isEmpty())
+            {
+                m.getProgramId().getUserList().clear();
+            }
+            clearLists(m.getMilestoneCreatedBy());
+        }
+
+        return new ResponseEntity<>(reminders, HttpStatus.OK);
     }
 
     private void clearLists(User user) {

@@ -31,7 +31,7 @@ public class UserControllerTest {
 
     //creation of new user: success
     @Test
-    public void testUserController01() throws Exception
+    public void registerUserSuccess() throws Exception
     {
         User newUser = new User("email@email.com", "newUser", "password", "111 Address Avenue Singapore 123456");
         objectMapper = new ObjectMapper();
@@ -44,7 +44,7 @@ public class UserControllerTest {
 
     //creation of new user: fail due to duplicate entry
     @Test
-    public void testUserController02() throws Exception
+    public void registerUserFailure() throws Exception
     {
         User newUser = new User("email@email.com", "newUser", "password", "111 Address Avenue Singapore 123456");
         Mockito.when(userRepository.findUserByUsername("newUser")).thenReturn(newUser);
@@ -59,7 +59,7 @@ public class UserControllerTest {
 
     //user login: success
     @Test
-    public void testUserController03() throws Exception
+    public void loginUserSuccess() throws Exception
     {
         User u = new User();
         u.setUsername("username");
@@ -75,7 +75,7 @@ public class UserControllerTest {
 
     //user login: failure due to invalid username
     @Test
-    public void testUserController04() throws Exception
+    public void loginUserFailure01() throws Exception
     {
         User u = new User();
         u.setUsername("username");
@@ -93,7 +93,7 @@ public class UserControllerTest {
 
     //user login: failure due to invalid password
     @Test
-    public void testUserController05() throws Exception
+    public void loginUserFailure02() throws Exception
     {
         User u = new User();
         u.setUsername("username");
