@@ -10,11 +10,9 @@ import java.util.List;
 
 public interface RewardRepository extends CrudRepository<Reward, Long> {
 
-    @Query("select r from Reward r where r.rewardId = :rewardId")
-    Reward findRewardByRewardId(@Param("rewardId") Long rewardId);
+    Reward findRewardByRewardId(Long rewardId);
 
-    @Query("select r from Reward r")
-    List<Reward> findAllRewards();
+    List<Reward> findAll();
 
     @Query("select distinct rh.reward from RewardsHistory rh where rh.user = :user")
     List<Reward> findRewardsByUser(@Param("user") User user);

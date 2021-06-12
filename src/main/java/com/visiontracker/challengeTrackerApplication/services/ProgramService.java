@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.services;
 
+import com.visiontracker.challengeTrackerApplication.helper.UtilClass;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateProgramReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
@@ -15,10 +16,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import util.exception.*;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -35,7 +32,7 @@ public class ProgramService {
     @Autowired
     private ProgramMemberRepository programMemberRepository;
 
-    private List<Program> enrolledPrograms;
+    private UtilClass util = new UtilClass();
 
     public ResponseEntity<Object> createProgram(CreateProgramReq createProgramReq) throws CreateNewProgramException, ProgramTitleExistException
     {
@@ -92,46 +89,20 @@ public class ProgramService {
         return new ResponseEntity<>(newProgram.getProgramId(), HttpStatus.OK);
     }
 
-    private void clearLists(User user) {
-        if (!user.getProgramsManaging().isEmpty())
-        {
-            user.getProgramsManaging().clear();
-        }
-        if (!user.getMilestoneList().isEmpty())
-        {
-            user.getMilestoneList().clear();
-        }
-        if (!user.getEnrolledPrograms().isEmpty())
-        {
-            user.getEnrolledPrograms().clear();
-        }
-        if (!user.getMilestonesCreated().isEmpty())
-        {
-            user.getMilestonesCreated().clear();
-        }
-    }
-
     public ResponseEntity<Object> getEnrolledPrograms(Long userId) throws UserNotFoundException {
         User user = userRepository.findUserById(userId);
         if (user == null)
         {
             throw new UserNotFoundException("This user does not exist");
         }
-        clearLists(user);
+        util.clearUserLists(user);
 
         List<Program> programs = programRepository.findProgramsByUserId(user);
 
         for (Program p : programs)
         {
-            if (!p.getUserList().isEmpty())
-            {
-                p.getUserList().clear();
-            }
-            if (!p.getMilestoneList().isEmpty())
-            {
-                p.getMilestoneList().clear();
-            }
-            clearLists(p.getProgramManager());
+            util.clearProgramLists(p);
+            util.clearUserLists(p.getProgramManager());
         }
 
         System.out.println(programs);
@@ -142,28 +113,18 @@ public class ProgramService {
     {
         try
         {
-            Program program = programRepository.findProgramById(programId);
+            Program program = programRepository.findProgramByProgramId(programId);
 
             if (program == null)
             {
                 throw new ProgramNotFoundException("Program not found");
             }
 
-            if (!program.getMilestoneList().isEmpty())
-            {
-                program.getMilestoneList().clear();
-            }
-            if (!program.getUserList().isEmpty())
-            {
-                program.getUserList().clear();
-            }
+            util.clearProgramLists(program);
 
             if (program.getProgramManager() != null)
             {
-                program.getProgramManager().getEnrolledPrograms().clear();
-                program.getProgramManager().getProgramsManaging().clear();
-                program.getProgramManager().getMilestonesCreated().clear();
-                program.getProgramManager().getMilestoneList().clear();
+                util.clearUserLists(program.getProgramManager());
             }
 
             return new ResponseEntity<>(program, HttpStatus.OK);
@@ -185,7 +146,7 @@ public class ProgramService {
             throw new UpdateProgramException("Program ID not provided for program to be updated");
         }
 
-        Program programToUpdate = programRepository.findProgramById(updateProgramReq.getProgram().getProgramId());
+        Program programToUpdate = programRepository.findProgramByProgramId(updateProgramReq.getProgram().getProgramId());
 
         User user = userRepository.findUserById(updateProgramReq.getUserLoggedIn());
         if (!programToUpdate.getProgramManager().equals(user))
@@ -236,13 +197,14 @@ public class ProgramService {
         programManager.getProgramsManaging().add(updatedProgram);
         for (User u : updatedProgram.getUserList())
         {
-            programMemberRepository.save(new ProgramMember(u, updatedProgram));
+            User savedUser = userRepository.save(u);
+            programMemberRepository.save(new ProgramMember(savedUser, updatedProgram));
         }
         return new ResponseEntity<>(updatedProgram.getProgramId(), HttpStatus.OK);
     }
 
     public ResponseEntity<Object> deleteProgram(Long programId) throws ProgramNotFoundException {
-        Program programToDelete = programRepository.findProgramById(programId);
+        Program programToDelete = programRepository.findProgramByProgramId(programId);
 
         if (programToDelete == null)
         {
@@ -266,13 +228,5 @@ public class ProgramService {
         programRepository.delete(programToDelete);
 
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    public List<Program> getEnrolledPrograms() {
-        return enrolledPrograms;
-    }
-
-    public void setEnrolledPrograms(List<Program> enrolledPrograms) {
-        this.enrolledPrograms = enrolledPrograms;
     }
 }

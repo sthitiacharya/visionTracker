@@ -12,13 +12,10 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 public interface UserRepository extends CrudRepository<User, Long> {
 
-    @Query("SELECT u FROM User u WHERE u.username = :username")
-    public User findUserByUsername(@Param("username") String username);
+    User findUserByUsername(String username);
 
-    @Query("select u from User u where u.userId = :userId")
-    public User findUserById(@Param("userId") Long userId);
+    User findUserById(Long userId);
 
-    @Query("select u from User u")
     List<User> findAll();
 
     @Query("select distinct pm.userId from ProgramMember pm where pm.programId = :programId")

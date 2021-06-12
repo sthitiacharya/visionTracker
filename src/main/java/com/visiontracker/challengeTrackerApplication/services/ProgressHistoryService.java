@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.services;
 
+import com.visiontracker.challengeTrackerApplication.helper.UtilClass;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgHistoryReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
@@ -37,6 +38,8 @@ public class ProgressHistoryService {
     @Autowired
     private UserRepository userRepository;
 
+    private UtilClass util = new UtilClass();
+
     public ResponseEntity<Object> createProgressHistoryRecord(CreateProgHistoryReq progressHistory) throws ProgramNotFoundException, MilestoneNotFoundException {
 
         System.out.println("In ProgramHistory service");
@@ -49,10 +52,8 @@ public class ProgressHistoryService {
 
         System.out.println("Milestone: " + milestone);
         System.out.println("Program: " + milestone.getProgramId());
-        if (!milestone.getProgressHistories().isEmpty())
-        {
-            milestone.getProgressHistories().clear();
-        }
+
+        util.clearMilestoneLists(milestone);
 
         progressHistory.getProgressHistory().setMilestoneId(milestone);
         progressHistory.getProgressHistory().setDateOfRecord(new Date());
@@ -75,18 +76,14 @@ public class ProgressHistoryService {
         }
         Milestone milestone = milestoneRepository.findMilestoneByMilestoneId(milestoneId);
 
-        if (!milestone.getProgressHistories().isEmpty())
-        {
-            milestone.getProgressHistories().clear();
-        }
+        util.clearMilestoneLists(milestone);
 
         List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(milestone);
         for (ProgressHistory p : progressHistories)
         {
-            p.getProgramId().getMilestoneList().clear();
-            p.getProgramId().getUserList().clear();
-            clearLists(p.getProgramId().getProgramManager());
-            clearLists(p.getMilestoneId().getMilestoneCreatedBy());
+            util.clearProgramLists(p.getProgramId());
+            util.clearUserLists(p.getProgramId().getProgramManager());
+            util.clearUserLists(p.getMilestoneId().getMilestoneCreatedBy());
         }
         return new ResponseEntity<>(progressHistories, HttpStatus.OK);
     }
@@ -99,20 +96,10 @@ public class ProgressHistoryService {
         {
             throw new ProgressHistoryNotFoundException("Progress History not found");
         }
-        if (!progressHistory.getMilestoneId().getProgressHistories().isEmpty())
-        {
-            progressHistory.getMilestoneId().getProgressHistories().clear();
-        }
-        if (!progressHistory.getProgramId().getMilestoneList().isEmpty())
-        {
-            progressHistory.getProgramId().getMilestoneList().clear();
-        }
-        if (!progressHistory.getProgramId().getUserList().isEmpty())
-        {
-            progressHistory.getProgramId().getUserList().clear();
-        }
-        clearLists(progressHistory.getProgramId().getProgramManager());
-        clearLists(progressHistory.getMilestoneId().getMilestoneCreatedBy());
+        util.clearMilestoneLists(progressHistory.getMilestoneId());
+        util.clearProgramLists(progressHistory.getProgramId());
+        util.clearUserLists(progressHistory.getProgramId().getProgramManager());
+        util.clearUserLists(progressHistory.getMilestoneId().getMilestoneCreatedBy());
 
         return new ResponseEntity<>(progressHistory, HttpStatus.OK);
     }
@@ -140,7 +127,7 @@ public class ProgressHistoryService {
         progressHistoryToUpdate.setValue(progressHistory.getValue());
 
         ProgressHistory progLog = progressHistoryRepository.save(progressHistoryToUpdate);
-        System.out.println("Prog Log: " + progLog + " Milestone: " + progLog.getMilestoneId() + " Program: " + progLog.getProgramId());
+        //System.out.println("Prog Log: " + progLog + " Milestone: " + progLog.getMilestoneId() + " Program: " + progLog.getProgramId());
         calcProgressRate(progLog.getMilestoneId(), progLog.getProgramId(), progLog);
 
         progLog.getMilestoneId().getProgressHistories().add(progLog);
@@ -160,8 +147,7 @@ public class ProgressHistoryService {
         int initialNumMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId().getProgramId()).size();
         if (program != null)
         {
-            program.getUserList().clear();
-            program.getMilestoneList().clear();
+            util.clearProgramLists(program);
         }
         progressHistoryRepository.delete(progressHistory);
 
@@ -175,19 +161,21 @@ public class ProgressHistoryService {
 
     private void calcProgressRate(Milestone milestone, Program program, ProgressHistory progressHistory)
     {
-        System.out.println(milestone);
-        System.out.println(program);
-        System.out.println(progressHistory);
         BigDecimal milestoneDifference = milestone.getTargetValue().subtract(milestone.getInitialValue());
         BigDecimal currentDifference = milestone.getTargetValue().subtract(progressHistory.getValue());
         BigDecimal change = milestoneDifference.subtract(currentDifference);
         Double milestoneProgressRate = (change.divide(milestoneDifference, 2, RoundingMode.CEILING)).doubleValue();
         SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
-        if (milestoneProgressRate.equals(1) && f.format(progressHistory.getDateOfRecord()).compareTo(f.format(milestone.getTargetCompletionDate())) <= 0)
-        {
+        String date1 = f.format(progressHistory.getDateOfRecord());
+        String date2 = f.format(milestone.getTargetCompletionDate());
+        System.out.println("Date of Record: " + date1 + " Milestone Target Date: " + date2);
+        if (milestoneProgressRate.equals(1.00) && (date1.equals(date2) || progressHistory.getDateOfRecord().before(milestone.getTargetCompletionDate()))) {
+            milestone.setActualCompletedDate(new Date());
+            milestoneRepository.save(milestone);
             if (milestone.getMilestoneType().equals("Individual") && milestone.getAssignedUser() != null)
             {
-                milestone.getAssignedUser().setRewardPoints(milestone.getRewardValue());
+                int newRewardPoints = milestone.getAssignedUser().getRewardPoints() + milestone.getRewardValue();
+                milestone.getAssignedUser().setRewardPoints(newRewardPoints);
                 userRepository.save(milestone.getAssignedUser());
             }
             if (milestone.getMilestoneType().equals("Program"))
@@ -195,7 +183,8 @@ public class ProgressHistoryService {
                 List<User> users = userRepository.findUsersByProgramId(program);
                 for (User u : users)
                 {
-                    u.setRewardPoints(milestone.getRewardValue());
+                    int newRewardPoints = u.getRewardPoints() + milestone.getRewardValue();
+                    u.setRewardPoints(newRewardPoints);
                     userRepository.save(u);
                 }
             }
@@ -203,25 +192,10 @@ public class ProgressHistoryService {
         int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
         Double programProgressRate = ((program.getCurrentProgressRate() / 100) + milestoneProgressRate/numMilestones) * 100;
         program.setCurrentProgressRate(programProgressRate);
+        if (programProgressRate.equals(100.00))
+        {
+            program.setActualCompletedDate(new Date());
+        }
         programRepository.save(program);
-    }
-
-    private void clearLists(User user) {
-        if (!user.getProgramsManaging().isEmpty())
-        {
-            user.getProgramsManaging().clear();
-        }
-        if (!user.getMilestoneList().isEmpty())
-        {
-            user.getMilestoneList().clear();
-        }
-        if (!user.getEnrolledPrograms().isEmpty())
-        {
-            user.getEnrolledPrograms().clear();
-        }
-        if (!user.getMilestonesCreated().isEmpty())
-        {
-            user.getMilestonesCreated().clear();
-        }
     }
 }

@@ -1,11 +1,11 @@
 package com.visiontracker.challengeTrackerApplication.controllers;
 
-import com.visiontracker.challengeTrackerApplication.models.db.RewardsHistory;
 import com.visiontracker.challengeTrackerApplication.services.RewardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import util.exception.RedeemRewardException;
 import util.exception.RewardNotFoundException;
 import util.exception.UserNotFoundException;
 
@@ -48,11 +48,16 @@ public class RewardController {
     }
 
     @PostMapping("/redeemReward")
-    public ResponseEntity<Object> redeemReward(RewardsHistory rewardsHistory)
+    public ResponseEntity<Object> redeemReward(@RequestParam(name = "rewardId")Long rewardId,
+                                               @RequestParam(name = "userId")Long userId)
     {
         try
         {
-            return rewardService.redeemReward(rewardsHistory);
+            return rewardService.redeemReward(rewardId, userId);
+        }
+        catch (RewardNotFoundException | UserNotFoundException | RedeemRewardException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
         catch(Exception ex)
         {
@@ -66,6 +71,24 @@ public class RewardController {
         try
         {
             return rewardService.viewRedeemedRewards(userId);
+        }
+        catch (UserNotFoundException ex)
+        {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+        catch (Exception ex)
+        {
+            ex.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
+    }
+
+    @GetMapping("/viewRewardsHistories")
+    public ResponseEntity<Object> viewRewardsHistories(@RequestParam(name = "userId") Long userId)
+    {
+        try
+        {
+            return rewardService.viewRewardHistories(userId);
         }
         catch (UserNotFoundException ex)
         {

@@ -12,13 +12,10 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:4200")
 public interface ProgramRepository extends CrudRepository<Program, Long> {
 
-    @Query("select p from Program p where p.programId = :programId")
-    Program findProgramById(@Param("programId") Long programId);
+    Program findProgramByProgramId(Long programId);
 
-    @Query("select p from Program p where p.title = :title")
-    Program findProgramByTitle(@Param("title") String title);
+    Program findProgramByTitle(String title);
 
-    @Query("select p from Program p")
     List<Program> findAll();
 
     @Query("select distinct pm.programId from ProgramMember pm where pm.userId = :userId")

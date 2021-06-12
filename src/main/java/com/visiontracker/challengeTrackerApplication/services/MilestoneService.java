@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.services;
 
+import com.visiontracker.challengeTrackerApplication.helper.UtilClass;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateMilestoneReq;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateMilestoneReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
@@ -16,7 +17,6 @@ import util.exception.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,6 +32,8 @@ public class MilestoneService {
 
     @Autowired
     private UserRepository userRepository;
+
+    public UtilClass util = new UtilClass();
 
     public ResponseEntity<Object> createMilestone(CreateMilestoneReq createMilestoneReq) throws CreateNewMilestoneException, MilestoneTitleExistException, ProgramNotFoundException, ParseException
     {
@@ -51,26 +53,15 @@ public class MilestoneService {
 
         Date creationDate = new Date();
         createMilestoneReq.getMilestone().setCreationDate(creationDate);
-        //Date date = new SimpleDateFormat("dd-MM-yyyy").parse(createMilestoneReq.getTargetCompletionDate());
-        //createMilestoneReq.getMilestone().setTargetCompletionDate(date);
 
-        Program program = programRepository.findProgramById(createMilestoneReq.getProgramId());
+        Program program = programRepository.findProgramByProgramId(createMilestoneReq.getProgramId());
 
         if (program == null)
         {
             throw new ProgramNotFoundException("Program Not Found");
         }
         createMilestoneReq.getMilestone().setProgramId(program);
-
-        if (!program.getMilestoneList().isEmpty())
-        {
-            program.getMilestoneList().clear();
-        }
-
-        if (!program.getUserList().isEmpty())
-        {
-            program.getUserList().clear();
-        }
+        util.clearProgramLists(program);
 
         Milestone newMilestone = milestoneRepository.save(createMilestoneReq.getMilestone());
         program.getMilestoneList().add(newMilestone);
@@ -86,21 +77,10 @@ public class MilestoneService {
 
         for (Milestone m : milestones)
         {
-            if (!m.getProgressHistories().isEmpty())
-            {
-                m.getProgressHistories().clear();
-            }
-
-            if (!m.getProgramId().getMilestoneList().isEmpty())
-            {
-                m.getProgramId().getMilestoneList().clear();
-            }
-            if (!m.getProgramId().getUserList().isEmpty())
-            {
-                m.getProgramId().getUserList().clear();
-            }
-            clearLists(m.getMilestoneCreatedBy());
-            clearLists(m.getProgramId().getProgramManager());
+            util.clearMilestoneLists(m);
+            util.clearProgramLists(m.getProgramId());
+            util.clearUserLists(m.getMilestoneCreatedBy());
+            util.clearUserLists(m.getProgramId().getProgramManager());
         }
 
         return new ResponseEntity<>(milestones, HttpStatus.OK);
@@ -117,21 +97,15 @@ public class MilestoneService {
                 throw new MilestoneNotFoundException("Milestone not found");
             }
 
-            if (!milestone.getProgressHistories().isEmpty())
-            {
-                milestone.getProgressHistories().clear();
-            }
-
+            util.clearMilestoneLists(milestone);
             if (milestone.getProgramId() != null)
             {
-                clearLists(milestone.getProgramId().getProgramManager());
-                milestone.getProgramId().getMilestoneList().clear();
-                milestone.getProgramId().getUserList().clear();
+                util.clearProgramLists(milestone.getProgramId());
+                util.clearUserLists(milestone.getProgramId().getProgramManager());
             }
-
             if (milestone.getMilestoneCreatedBy() != null)
             {
-                clearLists(milestone.getMilestoneCreatedBy());
+                util.clearUserLists(milestone.getMilestoneCreatedBy());
             }
 
             return new ResponseEntity<>(milestone, HttpStatus.OK);
@@ -158,18 +132,10 @@ public class MilestoneService {
         {
             throw new UpdateMilestoneException("Milestones need to be associated with a program");
         }
-        Program program = programRepository.findProgramById(updateMilestoneReq.getProgramId());
+        Program program = programRepository.findProgramByProgramId(updateMilestoneReq.getProgramId());
         milestoneToUpdate.setProgramId(program);
 
-        if (!program.getMilestoneList().isEmpty())
-        {
-            program.getMilestoneList().clear();
-        }
-
-        if (!program.getUserList().isEmpty())
-        {
-            program.getUserList().clear();
-        }
+        util.clearProgramLists(program);
 
         Milestone milestone = milestoneRepository.findMilestoneByTitle(updateMilestoneReq.getMilestone().getTitle());
         if (milestone != null && !milestone.getMilestoneId().equals(milestoneToUpdate.getMilestoneId()))
@@ -211,7 +177,7 @@ public class MilestoneService {
 
     public ResponseEntity<Object> getReminders(Long userId) {
         User user = userRepository.findUserById(userId);
-        clearLists(user);
+        util.clearUserLists(user);
         List<Program> programs = programRepository.findProgramsByUserId(user);
         List<Milestone> milestones = new ArrayList<>();
         List<String> reminders = new ArrayList<>();
@@ -219,14 +185,7 @@ public class MilestoneService {
         {
             List<Milestone> progMilestones = milestoneRepository.findMilestonesByProgramId(p.getProgramId());
             milestones.addAll(progMilestones);
-            if (!p.getMilestoneList().isEmpty())
-            {
-                p.getMilestoneList().clear();
-            }
-            if (!p.getUserList().isEmpty())
-            {
-                p.getUserList().clear();
-            }
+            util.clearProgramLists(p);
         }
 
         for (Milestone m : milestones)
@@ -286,40 +245,12 @@ public class MilestoneService {
                 m.setReminderStartDate(m.getTargetCompletionDate());
                 milestoneRepository.save(m);
             }
-            if (!m.getProgressHistories().isEmpty())
-            {
-                m.getProgressHistories().clear();
-            }
-            if (!m.getProgramId().getMilestoneList().isEmpty())
-            {
-                m.getProgramId().getMilestoneList().clear();
-            }
-            if (!m.getProgramId().getUserList().isEmpty())
-            {
-                m.getProgramId().getUserList().clear();
-            }
-            clearLists(m.getMilestoneCreatedBy());
+            util.clearProgramLists(m.getProgramId());
+            util.clearMilestoneLists(m);
+            util.clearUserLists(m.getMilestoneCreatedBy());
+            util.clearUserLists(m.getProgramId().getProgramManager());
         }
 
         return new ResponseEntity<>(reminders, HttpStatus.OK);
-    }
-
-    private void clearLists(User user) {
-        if (!user.getProgramsManaging().isEmpty())
-        {
-            user.getProgramsManaging().clear();
-        }
-        if (!user.getMilestoneList().isEmpty())
-        {
-            user.getMilestoneList().clear();
-        }
-        if (!user.getEnrolledPrograms().isEmpty())
-        {
-            user.getEnrolledPrograms().clear();
-        }
-        if (!user.getMilestonesCreated().isEmpty())
-        {
-            user.getMilestonesCreated().clear();
-        }
     }
 }

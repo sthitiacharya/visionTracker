@@ -13,11 +13,9 @@ import java.util.List;
 public interface MilestoneRepository extends CrudRepository<Milestone, Long> {
 
     @Query("select m from Milestone m where m.programId.programId = :programId")
-    public List<Milestone> findMilestonesByProgramId(@Param("programId") Long programId);
+    List<Milestone> findMilestonesByProgramId(@Param("programId") Long programId);
 
-    @Query("select m from Milestone m where m.title = :title")
-    Milestone findMilestoneByTitle(@Param("title") String title);
+    Milestone findMilestoneByTitle(String title);
 
-    @Query("select m from Milestone m where m.milestoneId = :milestoneId")
-    Milestone findMilestoneByMilestoneId(@Param("milestoneId") Long milestoneId);
+    Milestone findMilestoneByMilestoneId(Long milestoneId);
 }

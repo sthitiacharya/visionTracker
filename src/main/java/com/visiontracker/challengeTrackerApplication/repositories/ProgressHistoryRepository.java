@@ -11,9 +11,8 @@ import java.util.List;
 
 @CrossOrigin(origins = "http://localhost:4200")
 public interface ProgressHistoryRepository extends CrudRepository<ProgressHistory, Long> {
-    @Query("select p from ProgressHistory p where p.milestoneId = :milestoneId")
-    List<ProgressHistory> findProgressHistoriesByMilestoneId(@Param("milestoneId") Milestone milestoneId);
 
-    @Query("select p from ProgressHistory p where p.progressHistoryId = :progressHistoryId")
-    ProgressHistory findProgressHistoryByProgressHistoryId(@Param("progressHistoryId") Long progressHistoryId);
+    List<ProgressHistory> findProgressHistoriesByMilestoneId(Milestone milestoneId);
+
+    ProgressHistory findProgressHistoryByProgressHistoryId(Long progressHistoryId);
 }

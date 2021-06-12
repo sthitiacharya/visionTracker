@@ -1,5 +1,6 @@
 package com.visiontracker.challengeTrackerApplication.services;
 
+import com.visiontracker.challengeTrackerApplication.helper.UtilClass;
 import com.visiontracker.challengeTrackerApplication.models.db.Reward;
 import com.visiontracker.challengeTrackerApplication.models.db.RewardsHistory;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
@@ -10,10 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import util.exception.RedeemRewardException;
 import util.exception.RewardNotFoundException;
 import util.exception.UserNotFoundException;
 
-import javax.xml.ws.Response;
 import java.util.Date;
 import java.util.List;
 
@@ -28,9 +29,11 @@ public class RewardService {
     @Autowired
     private UserRepository userRepository;
 
+    private UtilClass util = new UtilClass();
+
     public ResponseEntity<Object> viewAllRewards()
     {
-        List<Reward> rewards = rewardRepository.findAllRewards();
+        List<Reward> rewards = rewardRepository.findAll();
         return new ResponseEntity<>(rewards, HttpStatus.OK);
     }
 
@@ -44,16 +47,32 @@ public class RewardService {
         return new ResponseEntity<>(reward, HttpStatus.OK);
     }
 
-    public ResponseEntity<Object> redeemReward(RewardsHistory rewardHistory)
-    {
-        rewardHistory.setDateOfRedemption(new Date());
-        rewardHistory.setRedeemPointValue(rewardHistory.getReward().getRedeemablePoints());
+    public ResponseEntity<Object> redeemReward(Long rewardId, Long userId) throws RewardNotFoundException, UserNotFoundException, RedeemRewardException {
+        Reward reward = rewardRepository.findRewardByRewardId(rewardId);
+        if (reward == null)
+        {
+            throw new RewardNotFoundException("Reward not found");
+        }
+        User user = userRepository.findUserById(userId);
+        if (user == null)
+        {
+            throw new UserNotFoundException("User not found");
+        }
+        if (user.getRewardPoints() < reward.getRedeemablePoints())
+        {
+            throw new RedeemRewardException("You have insufficient reward points to redeem this reward");
+        }
 
+        RewardsHistory rewardHistory = new RewardsHistory();
+        rewardHistory.setReward(reward);
+        rewardHistory.setUser(user);
+        rewardHistory.setDateOfRedemption(new Date());
+        rewardHistory.setRedeemPointValue(reward.getRedeemablePoints());
         RewardsHistory newRewardHistory = rewardsHistoryRepository.save(rewardHistory);
 
         newRewardHistory.getUser().setRewardPoints(newRewardHistory.getUser().getRewardPoints() - newRewardHistory.getRedeemPointValue());
         userRepository.save(newRewardHistory.getUser());
-        clearLists(newRewardHistory.getUser());
+        util.clearUserLists(newRewardHistory.getUser());
 
         return new ResponseEntity<>(newRewardHistory.getRewardsHistoryId(), HttpStatus.OK);
     }
@@ -64,28 +83,21 @@ public class RewardService {
         {
             throw new UserNotFoundException("User not found!");
         }
-        clearLists(user);
+        util.clearUserLists(user);
         List<Reward> redeemedRewards = rewardRepository.findRewardsByUser(user);
-
+        //List<RewardsHistory> rewardsHistories = rewardsHistoryRepository.findRewardsHistoriesByUser(user);
         return new ResponseEntity<>(redeemedRewards, HttpStatus.OK);
     }
 
-    private void clearLists(User user) {
-        if (!user.getProgramsManaging().isEmpty())
+    public ResponseEntity<Object> viewRewardHistories(Long userId) throws UserNotFoundException {
+        User user = userRepository.findUserById(userId);
+        if (user == null)
         {
-            user.getProgramsManaging().clear();
+            throw new UserNotFoundException("User not found!");
         }
-        if (!user.getMilestoneList().isEmpty())
-        {
-            user.getMilestoneList().clear();
-        }
-        if (!user.getEnrolledPrograms().isEmpty())
-        {
-            user.getEnrolledPrograms().clear();
-        }
-        if (!user.getMilestonesCreated().isEmpty())
-        {
-            user.getMilestonesCreated().clear();
-        }
+        util.clearUserLists(user);
+        //List<Reward> redeemedRewards = rewardRepository.findRewardsByUser(user);
+        List<RewardsHistory> rewardsHistories = rewardsHistoryRepository.findRewardsHistoriesByUser(user);
+        return new ResponseEntity<>(rewardsHistories, HttpStatus.OK);
     }
 }

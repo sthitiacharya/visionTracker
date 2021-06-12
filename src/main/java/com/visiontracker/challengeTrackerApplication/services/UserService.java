@@ -1,17 +1,13 @@
 package com.visiontracker.challengeTrackerApplication.services;
 
+import com.visiontracker.challengeTrackerApplication.helper.UtilClass;
 import com.visiontracker.challengeTrackerApplication.models.datamodels.LoginReq;
-import com.visiontracker.challengeTrackerApplication.models.db.Program;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import util.exception.InvalidLoginCredentialException;
 import util.exception.UserUsernameExistException;
 
@@ -23,6 +19,8 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
+    private UtilClass util = new UtilClass();
+
     public ResponseEntity<Object> createUser(User newUser) throws UserUsernameExistException {
         try
         {
@@ -30,7 +28,7 @@ public class UserService {
             {
                 throw new UserUsernameExistException("Duplicate username");
             }
-
+            newUser.setRewardPoints(0);
             userRepository.save(newUser);
 
             return new ResponseEntity<>(newUser.getUserId(), HttpStatus.OK);
@@ -55,10 +53,7 @@ public class UserService {
             throw new InvalidLoginCredentialException("Invalid Password");
         }
 
-        user.getMilestoneList().clear();
-        user.getProgramsManaging().clear();
-        user.getEnrolledPrograms().clear();
-        user.getMilestonesCreated().clear();
+        util.clearUserLists(user);
 
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
@@ -71,10 +66,7 @@ public class UserService {
 
             for (User u : users)
             {
-                u.getProgramsManaging().clear();
-                u.getEnrolledPrograms().clear();
-                u.getMilestoneList().clear();
-                u.getMilestonesCreated().clear();
+                util.clearUserLists(u);
             }
 
             return new ResponseEntity<>(users, HttpStatus.OK);
