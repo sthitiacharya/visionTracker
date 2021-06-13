@@ -105,7 +105,7 @@ public class ProgressHistoryControllerTest {
         String requestContent = objectMapper.writeValueAsString(newProgHistReq);
         System.out.println(requestContent);
         mockMvc.perform(MockMvcRequestBuilders.post("/ProgressHistory/logProgress").contentType(APPLICATION_JSON).content(requestContent))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("Milestone not found"));
     }
 
@@ -215,7 +215,7 @@ public class ProgressHistoryControllerTest {
         String requestContent = objectMapper.writeValueAsString(newProgressHistory);
         System.out.println(requestContent);
         mockMvc.perform(MockMvcRequestBuilders.put("/ProgressHistory/editProgressHistory").contentType(APPLICATION_JSON).content(requestContent))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("Progress History not found"));
     }
 
@@ -280,7 +280,7 @@ public class ProgressHistoryControllerTest {
         Mockito.when(progressHistoryRepository.findProgressHistoryByProgressHistoryId(1L)).thenReturn(newProgressHistory);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/ProgressHistory/deleteProgressHistory/{progressHistoryId}", 2L))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("Progress History not found"));
     }
 }

@@ -141,12 +141,7 @@ public class ProgramServiceTest {
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
-        //CreateProgramReq newProgramReq = new CreateProgramReq(newProgram, 1L, users, stringDate, stringDate2);
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        //String requestContent1 = objectMapper.writeValueAsString(newProgramReq);
-        //System.out.println(requestContent);
-        //MvcResult programId = mockMvc.perform(MockMvcRequestBuilders.post("/Program/createProgram").contentType(APPLICATION_JSON).content(requestContent1)).andReturn();
-        //Mockito.verify(programRepository, Mockito.atMostOnce()).save(newProgram);
 
         newProgram.setProgramId(1L);
         newProgram.setTitle("Updated Title");
@@ -202,7 +197,6 @@ public class ProgramServiceTest {
 
         newProgram.setProgramId(1L);
         Mockito.when(programRepository.findProgramByProgramId(1L)).thenReturn(newProgram);
-        //String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
         mockMvc.perform(MockMvcRequestBuilders.delete("/Program/deleteProgram/{programId}", 1L))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -224,7 +218,6 @@ public class ProgramServiceTest {
 
         newProgram.setProgramId(1L);
         Mockito.when(programRepository.findProgramByProgramId(1L)).thenReturn(newProgram);
-        //String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
         mockMvc.perform(MockMvcRequestBuilders.delete("/Program/deleteProgram/{programId}", 2L))
                 .andExpect(MockMvcResultMatchers.content().string("Program not found"));
     }

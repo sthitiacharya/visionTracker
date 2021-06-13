@@ -5,11 +5,15 @@
  */
 package util.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  *
  * @author sthit
  */
-public class CreateNewMilestoneException extends Exception {
+@ResponseStatus(HttpStatus.BAD_REQUEST)
+public class CreateNewMilestoneException extends RuntimeException {
 
     /**
      * Creates a new instance of <code>CreateNewMilestoneException</code>

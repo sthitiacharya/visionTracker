@@ -230,7 +230,7 @@ public class ProgramControllerTest {
         Mockito.when(programRepository.findProgramByProgramId(1L)).thenReturn(newProgram);
         //String requestContent2 = objectMapper.writeValueAsString(editProgramReq);
         mockMvc.perform(MockMvcRequestBuilders.delete("/Program/deleteProgram/{programId}", 2L))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("Program not found"));
     }
 }

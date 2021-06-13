@@ -182,7 +182,7 @@ public class MilestoneControllerTest {
         Long programId = Long.valueOf(1);
         Mockito.when(milestoneRepository.findMilestoneByMilestoneId(1L)).thenReturn(newMilestone);
         mockMvc.perform(MockMvcRequestBuilders.delete("/Milestone/deleteMilestone/{milestoneId}", 2L))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
                 .andExpect(MockMvcResultMatchers.content().string("Milestone not found"));
     }
 

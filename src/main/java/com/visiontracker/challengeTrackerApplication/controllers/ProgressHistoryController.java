@@ -4,7 +4,6 @@ import com.visiontracker.challengeTrackerApplication.models.datamodels.CreatePro
 import com.visiontracker.challengeTrackerApplication.models.db.ProgressHistory;
 import com.visiontracker.challengeTrackerApplication.services.ProgressHistoryService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import util.exception.MilestoneNotFoundException;
@@ -20,83 +19,27 @@ public class ProgressHistoryController {
     private ProgressHistoryService progressHistoryService;
 
     @PostMapping(path = "/logProgress")
-    public ResponseEntity<Object> createProgressHistoryRecord(@RequestBody CreateProgHistoryReq progressHistory) {
-        try
-        {
-            return progressHistoryService.createProgressHistoryRecord(progressHistory);
-        }
-        catch (MilestoneNotFoundException | ProgramNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> createProgressHistoryRecord(@RequestBody CreateProgHistoryReq progressHistory) throws MilestoneNotFoundException, ProgramNotFoundException {
+        return progressHistoryService.createProgressHistoryRecord(progressHistory);
     }
 
     @GetMapping("/progressHistories/{milestoneId}")
-    public ResponseEntity<Object> getProgressHistoriesByMilestone(@PathVariable(name = "milestoneId") Long milestoneId)
-    {
-        try
-        {
-            return progressHistoryService.retrieveProgressHistoriesByMilestone(milestoneId);
-        }
-        catch (MilestoneNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> getProgressHistoriesByMilestone(@PathVariable(name = "milestoneId") Long milestoneId) throws MilestoneNotFoundException {
+        return progressHistoryService.retrieveProgressHistoriesByMilestone(milestoneId);
     }
 
     @GetMapping("/progressHistory/{progressHistoryId}")
-    public ResponseEntity<Object> retrieveProgressHistory(@PathVariable(name = "progressHistoryId") Long progressHistoryId)
-    {
-        try
-        {
-            return progressHistoryService.retrieveProgressHistory(progressHistoryId);
-        }
-        catch(ProgressHistoryNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> retrieveProgressHistory(@PathVariable(name = "progressHistoryId") Long progressHistoryId) throws ProgressHistoryNotFoundException {
+        return progressHistoryService.retrieveProgressHistory(progressHistoryId);
     }
 
     @PutMapping("/editProgressHistory")
-    public ResponseEntity<Object> editProgressHistory(@RequestBody ProgressHistory progressHistory)
-    {
-        try
-        {
-            return progressHistoryService.editProgressHistoryRecord(progressHistory);
-        }
-        catch (ProgramNotFoundException | ProgressHistoryNotFoundException | MilestoneNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> editProgressHistory(@RequestBody ProgressHistory progressHistory) throws MilestoneNotFoundException, ProgramNotFoundException, ProgressHistoryNotFoundException {
+        return progressHistoryService.editProgressHistoryRecord(progressHistory);
     }
 
     @DeleteMapping("/deleteProgressHistory/{progressHistoryId}")
-    public ResponseEntity<Object> deleteProgressHistory(@PathVariable(name = "progressHistoryId") Long progressHistoryId)
-    {
-        try
-        {
-            return progressHistoryService.deleteProgressHistoryRecord(progressHistoryId);
-        }
-        catch (ProgressHistoryNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> deleteProgressHistory(@PathVariable(name = "progressHistoryId") Long progressHistoryId) throws ProgressHistoryNotFoundException {
+        return progressHistoryService.deleteProgressHistoryRecord(progressHistoryId);
     }
 }

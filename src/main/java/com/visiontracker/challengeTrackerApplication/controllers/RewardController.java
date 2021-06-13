@@ -19,85 +19,27 @@ public class RewardController {
     @GetMapping("/rewards")
     public ResponseEntity<Object> viewAllRewards()
     {
-        try
-        {
-            return rewardService.viewAllRewards();
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+        return rewardService.viewAllRewards();
     }
 
     @GetMapping("/rewards/{rewardId}")
-    public ResponseEntity<Object> viewRewardDetails(@PathVariable(name = "rewardId") Long rewardId)
-    {
-        try
-        {
-            return rewardService.viewRewardDetails(rewardId);
-        }
-        catch (RewardNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch(Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> viewRewardDetails(@PathVariable(name = "rewardId") Long rewardId) throws RewardNotFoundException {
+        return rewardService.viewRewardDetails(rewardId);
     }
 
     @PostMapping("/redeemReward")
     public ResponseEntity<Object> redeemReward(@RequestParam(name = "rewardId")Long rewardId,
-                                               @RequestParam(name = "userId")Long userId)
-    {
-        try
-        {
-            return rewardService.redeemReward(rewardId, userId);
-        }
-        catch (RewardNotFoundException | UserNotFoundException | RedeemRewardException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch(Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+                                               @RequestParam(name = "userId")Long userId) throws UserNotFoundException, RewardNotFoundException, RedeemRewardException {
+        return rewardService.redeemReward(rewardId, userId);
     }
 
     @GetMapping("/viewRedeemedRewards")
-    public ResponseEntity<Object> viewRedeemedRewards(@RequestParam(name = "userId") Long userId)
-    {
-        try
-        {
-            return rewardService.viewRedeemedRewards(userId);
-        }
-        catch (UserNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> viewRedeemedRewards(@RequestParam(name = "userId") Long userId) throws UserNotFoundException {
+        return rewardService.viewRedeemedRewards(userId);
     }
 
     @GetMapping("/viewRewardsHistories")
-    public ResponseEntity<Object> viewRewardsHistories(@RequestParam(name = "userId") Long userId)
-    {
-        try
-        {
-            return rewardService.viewRewardHistories(userId);
-        }
-        catch (UserNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> viewRewardsHistories(@RequestParam(name = "userId") Long userId) throws UserNotFoundException {
+        return rewardService.viewRewardHistories(userId);
     }
 }

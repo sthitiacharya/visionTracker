@@ -23,27 +23,13 @@ public class UserController {
     private UserService userService;
 
     @PostMapping(path = "/register")
-    public ResponseEntity<Object> createUser(@RequestBody User newUser) {
-        try
-        {
-            return userService.createUser(newUser);
-        }
-        catch (UserUsernameExistException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> createUser(@RequestBody User newUser) throws UserUsernameExistException {
+        return userService.createUser(newUser);
     }
 
     @PostMapping(path = "/login")
-    public ResponseEntity<Object> userLogin(@RequestBody LoginReq loginReq) {
-        try
-        {
-            return userService.userLogin(loginReq);
-        }
-        catch (InvalidLoginCredentialException ex)
-        {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> userLogin(@RequestBody LoginReq loginReq) throws InvalidLoginCredentialException {
+        return userService.userLogin(loginReq);
     }
 
     @GetMapping(path = "/retrieveAllUsers")

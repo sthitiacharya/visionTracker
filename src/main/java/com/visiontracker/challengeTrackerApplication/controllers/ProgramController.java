@@ -22,82 +22,27 @@ public class ProgramController {
     private UserRepository userRepository;
 
     @PostMapping("/createProgram")
-    public ResponseEntity<Object> createProgram(@RequestBody CreateProgramReq createProgramReq)
-    {
-        try
-        {
-            return programService.createProgram(createProgramReq);
-        }
-        catch (CreateNewProgramException | ProgramTitleExistException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch(Exception ex)
-        {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
-        }
+    public ResponseEntity<Object> createProgram(@RequestBody CreateProgramReq createProgramReq) throws ProgramTitleExistException, CreateNewProgramException {
+        return programService.createProgram(createProgramReq);
     }
 
     @GetMapping(path = "/getEnrolledPrograms")
-    public ResponseEntity<Object> getEnrolledPrograms(@RequestParam(name = "userId") Long userId)
-    {
-        try
-        {
-            return programService.getEnrolledPrograms(userId);
-        }
-        catch (UserNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> getEnrolledPrograms(@RequestParam(name = "userId") Long userId) throws UserNotFoundException {
+        return programService.getEnrolledPrograms(userId);
     }
 
     @GetMapping(path = "getEnrolledPrograms/{programId}")
-    public ResponseEntity<Object> retrieveProgram(@PathVariable(name = "programId") Long programId)
-    {
-        try
-        {
-            return programService.retrieveProgram(programId);
-        }
-        catch (ProgramNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
+    public ResponseEntity<Object> retrieveProgram(@PathVariable(name = "programId") Long programId) throws ProgramNotFoundException {
+        return programService.retrieveProgram(programId);
     }
 
     @PutMapping("/editProgram")
-    public ResponseEntity<Object> editProgram(@RequestBody UpdateProgramReq updateProgramReq)
-    {
-        try
-        {
+    public ResponseEntity<Object> editProgram(@RequestBody UpdateProgramReq updateProgramReq) throws UserNotFoundException, ProgramTitleExistException, UpdateProgramException {
             return programService.editProgram(updateProgramReq);
-        }
-        catch (UpdateProgramException | ProgramTitleExistException | UserNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch(Exception ex)
-        {
-            System.out.println("Internal Server Error");
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getClass());
-        }
     }
 
     @DeleteMapping("/deleteProgram/{programId}")
-    public ResponseEntity<Object> deleteProgram(@PathVariable(name = "programId") Long programId)
-    {
-        try
-        {
+    public ResponseEntity<Object> deleteProgram(@PathVariable(name = "programId") Long programId) throws ProgramNotFoundException {
             return programService.deleteProgram(programId);
-        }
-        catch (ProgramNotFoundException ex)
-        {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
-        }
-        catch (Exception ex)
-        {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
-        }
     }
 }
