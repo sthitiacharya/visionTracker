@@ -9,6 +9,8 @@ import util.exception.RedeemRewardException;
 import util.exception.RewardNotFoundException;
 import util.exception.UserNotFoundException;
 
+import java.text.ParseException;
+
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping(path="/Reward")
@@ -29,7 +31,7 @@ public class RewardController {
 
     @PostMapping("/redeemReward")
     public ResponseEntity<Object> redeemReward(@RequestParam(name = "rewardId")Long rewardId,
-                                               @RequestParam(name = "userId")Long userId) throws UserNotFoundException, RewardNotFoundException, RedeemRewardException {
+                                               @RequestParam(name = "userId")Long userId) throws UserNotFoundException, RewardNotFoundException, RedeemRewardException, ParseException {
         return rewardService.redeemReward(rewardId, userId);
     }
 

@@ -35,7 +35,7 @@ public class MilestoneService {
 
     public UtilClass util = new UtilClass();
 
-    public ResponseEntity<Object> createMilestone(CreateMilestoneReq createMilestoneReq) throws CreateNewMilestoneException, MilestoneTitleExistException, ProgramNotFoundException, ParseException
+    public ResponseEntity<Object> createMilestone(CreateMilestoneReq createMilestoneReq) throws CreateNewMilestoneException, MilestoneTitleExistException, ProgramNotFoundException
     {
         if(createMilestoneReq == null) {
             throw new CreateNewMilestoneException("Invalid create new product request");
@@ -51,6 +51,17 @@ public class MilestoneService {
             throw new MilestoneTitleExistException("Duplicate Milestone Title");
         }
 
+        if (createMilestoneReq.getMilestone().getMilestoneType().equals("Individual") && createMilestoneReq.getAssignedUserId() == null)
+        {
+            throw new CreateNewMilestoneException("There must be an assigned user for milestone of individual type");
+        }
+
+        if (createMilestoneReq.getAssignedUserId() != null)
+        {
+            User assignedUser = userRepository.findUserByUserId(createMilestoneReq.getAssignedUserId());
+            createMilestoneReq.getMilestone().setAssignedUser(assignedUser);
+        }
+
         Date creationDate = new Date();
         createMilestoneReq.getMilestone().setCreationDate(creationDate);
 
@@ -60,11 +71,15 @@ public class MilestoneService {
         {
             throw new ProgramNotFoundException("Program Not Found");
         }
+        int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
+        program.setCurrentProgressRate((program.getCurrentProgressRate()*numMilestones)/(numMilestones+1));
+        programRepository.save(program);
         createMilestoneReq.getMilestone().setProgramId(program);
-        util.clearProgramLists(program);
-
+        //util.clearProgramLists(program);
         Milestone newMilestone = milestoneRepository.save(createMilestoneReq.getMilestone());
+
         program.getMilestoneList().add(newMilestone);
+        programRepository.save(program);
 
         return new ResponseEntity<>(newMilestone.getMilestoneId(), HttpStatus.OK);
 
@@ -77,6 +92,10 @@ public class MilestoneService {
 
         for (Milestone m : milestones)
         {
+            if (m.getAssignedUser() != null)
+            {
+                util.clearUserLists(m.getAssignedUser());
+            }
             util.clearMilestoneLists(m);
             util.clearProgramLists(m.getProgramId());
             util.clearUserLists(m.getMilestoneCreatedBy());
@@ -86,7 +105,7 @@ public class MilestoneService {
         return new ResponseEntity<>(milestones, HttpStatus.OK);
     }
 
-    public ResponseEntity<Object> retrieveMilestone(Long milestoneId) throws MilestoneNotFoundException
+    public ResponseEntity<Object> retrieveMilestone(Long milestoneId)
     {
         try
         {
@@ -106,6 +125,10 @@ public class MilestoneService {
             if (milestone.getMilestoneCreatedBy() != null)
             {
                 util.clearUserLists(milestone.getMilestoneCreatedBy());
+            }
+            if (milestone.getAssignedUser() != null)
+            {
+                util.clearUserLists(milestone.getAssignedUser());
             }
 
             return new ResponseEntity<>(milestone, HttpStatus.OK);
@@ -136,6 +159,17 @@ public class MilestoneService {
         milestoneToUpdate.setProgramId(program);
 
         util.clearProgramLists(program);
+
+        if (updateMilestoneReq.getMilestone().getMilestoneType().equals("Individual") && updateMilestoneReq.getAssignedUserId() == null)
+        {
+            throw new UpdateMilestoneException("There must be an assigned user for milestone of individual type");
+        }
+
+        if (updateMilestoneReq.getAssignedUserId() != null)
+        {
+            User assignedUser = userRepository.findUserByUserId(updateMilestoneReq.getAssignedUserId());
+            milestoneToUpdate.setAssignedUser(assignedUser);
+        }
 
         Milestone milestone = milestoneRepository.findMilestoneByTitle(updateMilestoneReq.getMilestone().getTitle());
         if (milestone != null && !milestone.getMilestoneId().equals(milestoneToUpdate.getMilestoneId()))
@@ -170,13 +204,25 @@ public class MilestoneService {
             throw new MilestoneNotFoundException("Milestone not found");
         }
 
+        Program program = milestoneToDelete.getProgramId();
+        int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
+
         milestoneRepository.delete(milestoneToDelete);
+
+        if (numMilestones-1 == 0) { program.setCurrentProgressRate(0.00); }
+        program.setCurrentProgressRate((program.getCurrentProgressRate()*numMilestones)/(numMilestones-1));
+        if (program.getCurrentProgressRate() >= 100.00)
+        {
+            program.setCurrentProgressRate(100.00);
+            program.setActualCompletedDate(new Date());
+        }
+        programRepository.save(program);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     public ResponseEntity<Object> getReminders(Long userId) {
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserByUserId(userId);
         util.clearUserLists(user);
         List<Program> programs = programRepository.findProgramsByUserId(user);
         List<Milestone> milestones = new ArrayList<>();
@@ -249,6 +295,10 @@ public class MilestoneService {
             util.clearMilestoneLists(m);
             util.clearUserLists(m.getMilestoneCreatedBy());
             util.clearUserLists(m.getProgramId().getProgramManager());
+            if (m.getAssignedUser() != null)
+            {
+                util.clearUserLists(m.getAssignedUser());
+            }
         }
 
         return new ResponseEntity<>(reminders, HttpStatus.OK);

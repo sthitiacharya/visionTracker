@@ -6,16 +6,18 @@ public class UpdateMilestoneReq {
     private Milestone milestone;
     private Long programId;
     private String targetCompletionDate;
+    private Long assignedUserId;
 
     public UpdateMilestoneReq()
     {
         milestone = new Milestone();
     }
 
-    public UpdateMilestoneReq(Milestone milestone, Long programId, String targetCompletionDate) {
+    public UpdateMilestoneReq(Milestone milestone, Long programId, String targetCompletionDate, Long assignedUserId) {
         this.milestone = milestone;
         this.programId = programId;
         this.targetCompletionDate = targetCompletionDate;
+        this.setAssignedUserId(assignedUserId);
     }
 
     /**
@@ -58,5 +60,13 @@ public class UpdateMilestoneReq {
      */
     public void setTargetCompletionDate(String targetCompletionDate) {
         this.targetCompletionDate = targetCompletionDate;
+    }
+
+    public Long getAssignedUserId() {
+        return assignedUserId;
+    }
+
+    public void setAssignedUserId(Long assignedUserId) {
+        this.assignedUserId = assignedUserId;
     }
 }

@@ -16,7 +16,7 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({RuntimeException.class})
     @ResponseStatus(INTERNAL_SERVER_ERROR)
-    public void handleRunTimeException() { }
+    public void handleRunTimeException(RuntimeException ex) { ex.printStackTrace(); }
 
     @ExceptionHandler({UserNotFoundException.class, ProgramNotFoundException.class, MilestoneNotFoundException.class
             , ProgressHistoryNotFoundException.class, RewardNotFoundException.class})

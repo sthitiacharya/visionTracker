@@ -15,6 +15,8 @@ import util.exception.RedeemRewardException;
 import util.exception.RewardNotFoundException;
 import util.exception.UserNotFoundException;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -47,13 +49,13 @@ public class RewardService {
         return new ResponseEntity<>(reward, HttpStatus.OK);
     }
 
-    public ResponseEntity<Object> redeemReward(Long rewardId, Long userId) throws RewardNotFoundException, UserNotFoundException, RedeemRewardException {
+    public ResponseEntity<Object> redeemReward(Long rewardId, Long userId) throws RewardNotFoundException, UserNotFoundException, RedeemRewardException, ParseException {
         Reward reward = rewardRepository.findRewardByRewardId(rewardId);
         if (reward == null)
         {
             throw new RewardNotFoundException("Reward not found");
         }
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserByUserId(userId);
         if (user == null)
         {
             throw new UserNotFoundException("User not found");
@@ -66,7 +68,9 @@ public class RewardService {
         RewardsHistory rewardHistory = new RewardsHistory();
         rewardHistory.setReward(reward);
         rewardHistory.setUser(user);
-        rewardHistory.setDateOfRedemption(new Date());
+        SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
+        String date1 = f.format(new Date());
+        rewardHistory.setDateOfRedemption(f.parse(date1));
         rewardHistory.setRedeemPointValue(reward.getRedeemablePoints());
         RewardsHistory newRewardHistory = rewardsHistoryRepository.save(rewardHistory);
 
@@ -78,7 +82,7 @@ public class RewardService {
     }
 
     public ResponseEntity<Object> viewRedeemedRewards(Long userId) throws UserNotFoundException {
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserByUserId(userId);
         if (user == null)
         {
             throw new UserNotFoundException("User not found!");
@@ -90,7 +94,7 @@ public class RewardService {
     }
 
     public ResponseEntity<Object> viewRewardHistories(Long userId) throws UserNotFoundException {
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserByUserId(userId);
         if (user == null)
         {
             throw new UserNotFoundException("User not found!");

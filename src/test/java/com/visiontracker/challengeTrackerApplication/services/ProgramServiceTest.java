@@ -49,7 +49,7 @@ public class ProgramServiceTest {
         String stringDate2 = "17-05-2021";
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
         User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
-        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(userRepository.findUserByUserId(1L)).thenReturn(user);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
@@ -107,7 +107,7 @@ public class ProgramServiceTest {
     public void retrieveEnrolledProgramsSuccess() throws Exception
     {
         User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
-        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(userRepository.findUserByUserId(1L)).thenReturn(user);
         Long userId = 1L;
         String requestContent = objectMapper.writeValueAsString(userId);
         mockMvc.perform(MockMvcRequestBuilders.get("/Program/getEnrolledPrograms").queryParam("userId", requestContent))
@@ -137,7 +137,7 @@ public class ProgramServiceTest {
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
         User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
         newProgram.setProgramManager(user);
-        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(userRepository.findUserByUserId(1L)).thenReturn(user);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
@@ -164,7 +164,7 @@ public class ProgramServiceTest {
         User user2 = new User("user2@mail.com", "username2", "password", "Mailing Address Avenue");
         user2.setUserId(2L);
         newProgram.setProgramManager(user2);
-        Mockito.when(userRepository.findUserById(1L)).thenReturn(user1);
+        Mockito.when(userRepository.findUserByUserId(1L)).thenReturn(user1);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
@@ -189,7 +189,7 @@ public class ProgramServiceTest {
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
         User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
         newProgram.setProgramManager(user);
-        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(userRepository.findUserByUserId(1L)).thenReturn(user);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);
@@ -210,7 +210,7 @@ public class ProgramServiceTest {
         Program newProgram = new Program("Sample Title", "Sample Description", null, null);
         User user = new User("mail@mail.com", "username", "password", "Mailing Address Avenue");
         newProgram.setProgramManager(user);
-        Mockito.when(userRepository.findUserById(1L)).thenReturn(user);
+        Mockito.when(userRepository.findUserByUserId(1L)).thenReturn(user);
         Mockito.when(programRepository.save(any(Program.class))).thenReturn(newProgram);
         List<Long> users = new ArrayList<>();
         users.add(1L);

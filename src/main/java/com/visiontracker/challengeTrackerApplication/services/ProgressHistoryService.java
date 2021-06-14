@@ -81,6 +81,9 @@ public class ProgressHistoryService {
         List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(milestone);
         for (ProgressHistory p : progressHistories)
         {
+            if (p.getMilestoneId().getAssignedUser() != null) {
+                util.clearUserLists(p.getMilestoneId().getAssignedUser());
+            }
             util.clearProgramLists(p.getProgramId());
             util.clearUserLists(p.getProgramId().getProgramManager());
             util.clearUserLists(p.getMilestoneId().getMilestoneCreatedBy());
@@ -100,6 +103,9 @@ public class ProgressHistoryService {
         util.clearProgramLists(progressHistory.getProgramId());
         util.clearUserLists(progressHistory.getProgramId().getProgramManager());
         util.clearUserLists(progressHistory.getMilestoneId().getMilestoneCreatedBy());
+        if (progressHistory.getMilestoneId().getAssignedUser() != null) {
+            util.clearUserLists(progressHistory.getMilestoneId().getAssignedUser());
+        }
 
         return new ResponseEntity<>(progressHistory, HttpStatus.OK);
     }
@@ -116,8 +122,7 @@ public class ProgressHistoryService {
             throw new ProgramNotFoundException("Program not found");
         }
         progressHistoryToUpdate.setProgramId(progressHistory.getProgramId());
-        progressHistory.getProgramId().getUserList().clear();
-        progressHistory.getProgramId().getMilestoneList().clear();
+        util.clearProgramLists(progressHistory.getProgramId());
 
         if (progressHistory.getMilestoneId() == null)
         {
@@ -144,17 +149,16 @@ public class ProgressHistoryService {
             throw new ProgressHistoryNotFoundException("Progress History not found");
         }
         Program program = progressHistory.getProgramId();
-        int initialNumMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId().getProgramId()).size();
+        Milestone milestone = progressHistory.getMilestoneId();
+        List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(milestone);
+        ProgressHistory lastProgressHistory = progressHistories.get(progressHistories.size()-1);
+        //int initialNumMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId().getProgramId()).size();
         if (program != null)
         {
             util.clearProgramLists(program);
         }
         progressHistoryRepository.delete(progressHistory);
-
-        int numMilestones = milestoneRepository.findMilestonesByProgramId(progressHistory.getProgramId().getProgramId()).size();
-        Double programProgressRate = (program.getCurrentProgressRate()/initialNumMilestones)*numMilestones;
-        program.setCurrentProgressRate(programProgressRate);
-        programRepository.save(program);
+        calcProgressRate(milestone, program, lastProgressHistory);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }
@@ -168,7 +172,7 @@ public class ProgressHistoryService {
         SimpleDateFormat f = new SimpleDateFormat("dd-MM-yyyy");
         String date1 = f.format(progressHistory.getDateOfRecord());
         String date2 = f.format(milestone.getTargetCompletionDate());
-        System.out.println("Date of Record: " + date1 + " Milestone Target Date: " + date2);
+        //System.out.println("Date of Record: " + date1 + " Milestone Target Date: " + date2);
         if (milestoneProgressRate.equals(1.00) && (date1.equals(date2) || progressHistory.getDateOfRecord().before(milestone.getTargetCompletionDate()))) {
             milestone.setActualCompletedDate(new Date());
             milestoneRepository.save(milestone);
@@ -189,11 +193,38 @@ public class ProgressHistoryService {
                 }
             }
         }
-        int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
-        Double programProgressRate = ((program.getCurrentProgressRate() / 100) + milestoneProgressRate/numMilestones) * 100;
-        program.setCurrentProgressRate(programProgressRate);
-        if (programProgressRate.equals(100.00))
+        if (!milestoneProgressRate.equals(1.00) && milestone.getActualCompletedDate() != null)
         {
+            milestone.setActualCompletedDate(null);
+            milestoneRepository.save(milestone);
+        }
+
+        List<Milestone> milestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId());
+        int numMilestones = milestones.size();
+        if (numMilestones == 0) { program.setCurrentProgressRate(0.00); }
+        double programProgressRate = 0.00;
+        for (Milestone m : milestones)
+        {
+            if (m != milestone)
+            {
+                List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(m);
+                int size = progressHistories.size();
+                BigDecimal milestoneDiff = m.getTargetValue().subtract(m.getInitialValue());
+                if (size != 0)
+                {
+                    BigDecimal currentDiff = m.getTargetValue().subtract(progressHistories.get(progressHistories.size()-1).getValue());
+                    BigDecimal diff = milestoneDiff.subtract(currentDiff);
+                    double milestoneProgress = (diff.divide(milestoneDiff, 2, RoundingMode.CEILING)).doubleValue();
+                    programProgressRate += milestoneProgress;
+                }
+            }
+        }
+        programProgressRate += milestoneProgressRate;
+        programProgressRate = (programProgressRate/numMilestones) * 100;
+        program.setCurrentProgressRate(programProgressRate);
+        if (programProgressRate >= 100.00)
+        {
+            program.setCurrentProgressRate(100.00);
             program.setActualCompletedDate(new Date());
         }
         programRepository.save(program);

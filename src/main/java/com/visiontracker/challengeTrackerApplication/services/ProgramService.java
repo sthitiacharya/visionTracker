@@ -50,7 +50,7 @@ public class ProgramService {
             throw new ProgramTitleExistException("Duplicate Program Title");
         }
 
-        User programManager = userRepository.findUserById(createProgramReq.getUserId());
+        User programManager = userRepository.findUserByUserId(createProgramReq.getUserId());
 
         if (programManager == null)
         {
@@ -68,7 +68,7 @@ public class ProgramService {
 
         for (Long u : createProgramReq.getUserIds())
         {
-            User user = userRepository.findUserById(u);
+            User user = userRepository.findUserByUserId(u);
             createProgramReq.getProgram().getUserList().add(user);
         }
 
@@ -90,7 +90,7 @@ public class ProgramService {
     }
 
     public ResponseEntity<Object> getEnrolledPrograms(Long userId) throws UserNotFoundException {
-        User user = userRepository.findUserById(userId);
+        User user = userRepository.findUserByUserId(userId);
         if (user == null)
         {
             throw new UserNotFoundException("This user does not exist");
@@ -148,7 +148,7 @@ public class ProgramService {
 
         Program programToUpdate = programRepository.findProgramByProgramId(updateProgramReq.getProgram().getProgramId());
 
-        User user = userRepository.findUserById(updateProgramReq.getUserLoggedIn());
+        User user = userRepository.findUserByUserId(updateProgramReq.getUserLoggedIn());
         if (!programToUpdate.getProgramManager().equals(user))
         {
             throw new UpdateProgramException("Program can only be updated by the program manager");
@@ -165,7 +165,7 @@ public class ProgramService {
         programToUpdate.setStartDate(updateProgramReq.getProgram().getStartDate());
         programToUpdate.setTargetCompletionDate(updateProgramReq.getProgram().getTargetCompletionDate());
 
-        User programManager = userRepository.findUserById(updateProgramReq.getUserId());
+        User programManager = userRepository.findUserByUserId(updateProgramReq.getUserId());
 
         if (programManager == null)
         {
@@ -181,7 +181,7 @@ public class ProgramService {
 
         for (Long u : updateProgramReq.getUserIds())
         {
-            User enrolledUser = userRepository.findUserById(u);
+            User enrolledUser = userRepository.findUserByUserId(u);
             updateProgramReq.getProgram().getUserList().add(enrolledUser);
         }
         programToUpdate.setUserList(updateProgramReq.getProgram().getUserList());

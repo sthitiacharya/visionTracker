@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import util.exception.InvalidLoginCredentialException;
+import util.exception.ProgramNotFoundException;
 import util.exception.UserUsernameExistException;
 
 import java.util.List;
@@ -36,5 +37,10 @@ public class UserController {
     public ResponseEntity<List<User>> retrieveAllUsers()
     {
         return userService.retrieveAllUsers();
+    }
+
+    @GetMapping(path = "/retrieveProgramUsers/{programId}")
+    public ResponseEntity<Object> retrieveUsersByProgram(@PathVariable(name = "programId") Long programId) throws ProgramNotFoundException {
+        return userService.retrieveUsersByProgramId(programId);
     }
 }
