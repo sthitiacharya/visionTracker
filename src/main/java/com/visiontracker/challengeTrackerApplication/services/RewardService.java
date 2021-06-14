@@ -89,7 +89,6 @@ public class RewardService {
         }
         util.clearUserLists(user);
         List<Reward> redeemedRewards = rewardRepository.findRewardsByUser(user);
-        //List<RewardsHistory> rewardsHistories = rewardsHistoryRepository.findRewardsHistoriesByUser(user);
         return new ResponseEntity<>(redeemedRewards, HttpStatus.OK);
     }
 
@@ -100,7 +99,6 @@ public class RewardService {
             throw new UserNotFoundException("User not found!");
         }
         util.clearUserLists(user);
-        //List<Reward> redeemedRewards = rewardRepository.findRewardsByUser(user);
         List<RewardsHistory> rewardsHistories = rewardsHistoryRepository.findRewardsHistoriesByUser(user);
         return new ResponseEntity<>(rewardsHistories, HttpStatus.OK);
     }
