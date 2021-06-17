@@ -5,9 +5,11 @@ import com.visiontracker.challengeTrackerApplication.models.datamodels.CreateMil
 import com.visiontracker.challengeTrackerApplication.models.datamodels.UpdateMilestoneReq;
 import com.visiontracker.challengeTrackerApplication.models.db.Milestone;
 import com.visiontracker.challengeTrackerApplication.models.db.Program;
+import com.visiontracker.challengeTrackerApplication.models.db.ProgressHistory;
 import com.visiontracker.challengeTrackerApplication.models.db.User;
 import com.visiontracker.challengeTrackerApplication.repositories.MilestoneRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.ProgramRepository;
+import com.visiontracker.challengeTrackerApplication.repositories.ProgressHistoryRepository;
 import com.visiontracker.challengeTrackerApplication.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,9 @@ public class MilestoneService {
 
     @Autowired
     private ProgramRepository programRepository;
+
+    @Autowired
+    private ProgressHistoryRepository progressHistoryRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -206,17 +211,28 @@ public class MilestoneService {
 
         Program program = milestoneToDelete.getProgramId();
         int numMilestones = milestoneRepository.findMilestonesByProgramId(program.getProgramId()).size();
+        if (numMilestones-1 == 0) {
+            program.setCurrentProgressRate(0.00); program.setActualCompletedDate(null);
+        }
+        else
+        {
+            program.setCurrentProgressRate((program.getCurrentProgressRate()*numMilestones)/(numMilestones-1));
+        }
 
-        milestoneRepository.delete(milestoneToDelete);
-
-        if (numMilestones-1 == 0) { program.setCurrentProgressRate(0.00); }
-        program.setCurrentProgressRate((program.getCurrentProgressRate()*numMilestones)/(numMilestones-1));
         if (program.getCurrentProgressRate() >= 100.00)
         {
             program.setCurrentProgressRate(100.00);
-            program.setActualCompletedDate(new Date());
         }
         programRepository.save(program);
+
+        List<ProgressHistory> progressHistories = progressHistoryRepository.findProgressHistoriesByMilestoneId(milestoneToDelete);
+
+        for (ProgressHistory ph : progressHistories)
+        {
+            progressHistoryRepository.delete(ph);
+        }
+
+        milestoneRepository.delete(milestoneToDelete);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

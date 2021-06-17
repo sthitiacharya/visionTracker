@@ -18,8 +18,8 @@ com/visiontracker/challengeTrackerApplication/repositories/RewardRepository.java
  com.visiontracker.challengeTrackerApplication.repositories.RewardRepository
 com/visiontracker/challengeTrackerApplication/models/db/Reward.java
  com.visiontracker.challengeTrackerApplication.models.db.Reward
-com/visiontracker/challengeTrackerApplication/controllers/MilestoneController.java
- com.visiontracker.challengeTrackerApplication.controllers.MilestoneController
+com/visiontracker/challengeTrackerApplication/services/RewardService.java
+ com.visiontracker.challengeTrackerApplication.services.RewardService
 com/visiontracker/challengeTrackerApplication/models/datamodels/CreateProgramReq.java
  com.visiontracker.challengeTrackerApplication.models.datamodels.CreateProgramReq
 com/visiontracker/challengeTrackerApplication/models/db/User.java
@@ -58,8 +58,8 @@ com/visiontracker/challengeTrackerApplication/controllers/ErrorHandler.java
  com.visiontracker.challengeTrackerApplication.controllers.ErrorHandler
 com/visiontracker/challengeTrackerApplication/services/UserService.java
  com.visiontracker.challengeTrackerApplication.services.UserService
-com/visiontracker/challengeTrackerApplication/services/MilestoneService.java
- com.visiontracker.challengeTrackerApplication.services.MilestoneService
+com/visiontracker/challengeTrackerApplication/controllers/RewardController.java
+ com.visiontracker.challengeTrackerApplication.controllers.RewardController
 util/exception/UnknownPersistenceException.java
  util.exception.UnknownPersistenceException
 com/visiontracker/challengeTrackerApplication/models/datamodels/CreateMilestoneReq.java
@@ -92,7 +92,7 @@ com/visiontracker/challengeTrackerApplication/services/ProgressHistoryService.ja
  com.visiontracker.challengeTrackerApplication.services.ProgressHistoryService
 com/visiontracker/challengeTrackerApplication/controllers/ProgressHistoryController.java
  com.visiontracker.challengeTrackerApplication.controllers.ProgressHistoryController
-com/visiontracker/challengeTrackerApplication/controllers/RewardController.java
- com.visiontracker.challengeTrackerApplication.controllers.RewardController
-com/visiontracker/challengeTrackerApplication/services/RewardService.java
- com.visiontracker.challengeTrackerApplication.services.RewardService
+com/visiontracker/challengeTrackerApplication/controllers/MilestoneController.java
+ com.visiontracker.challengeTrackerApplication.controllers.MilestoneController
+com/visiontracker/challengeTrackerApplication/services/MilestoneService.java
+ com.visiontracker.challengeTrackerApplication.services.MilestoneService
