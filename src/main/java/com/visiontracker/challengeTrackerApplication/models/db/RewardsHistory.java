@@ -17,6 +17,7 @@ public class RewardsHistory implements Serializable {
     private Long rewardsHistoryId;
 
     @Column(name = "dateOfRedemption")
+    @Temporal(TemporalType.DATE)
     private Date dateOfRedemption;
 
     @Column(name = "redeemPointValue")

@@ -40,8 +40,8 @@ public class ChallengeTrackerApplication {
 								". Valid for only one month from date of redemption", "Voucher",
 						20);
 				reward3.setRewardImageLink("https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-				Reward reward4 = new Reward("RV0004", " $10 GrabFood Vouchers",
-						"The vouchers can be redeemed when purchasing items from the GrabFood app" +
+				Reward reward4 = new Reward("RV0004", " $10 Food Vouchers",
+						"The vouchers can be redeemed when purchasing items from the Food app" +
 								"\n Valid for only one month from date of redemption", "Voucher",
 						20);
 				reward4.setRewardImageLink("https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxleHBsb3JlLWZlZWR8MXx8fGVufDB8fHx8&w=1000&q=80");
